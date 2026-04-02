@@ -2,6 +2,9 @@
 
 A customizable, draggable weekly availability calendar component for React. Create, resize, and move time slots with zero external styling dependencies.
 
+<img width="992" height="645" alt="image" src="https://github.com/user-attachments/assets/c737831d-cd82-46bf-b870-01b179ac6f43" />
+
+
 ## Features
 
 - Drag to create, resize, and move availability slots
