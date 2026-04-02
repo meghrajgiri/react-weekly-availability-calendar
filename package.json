@@ -1,0 +1,61 @@
+{
+  "name": "react-weekly-availability-calendar",
+  "version": "0.1.0",
+  "description": "A customizable, draggable weekly availability calendar component for React. Create, resize, move time slots with zero external dependencies.",
+  "author": "Meghraj Giri",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/meghrajgiri/react-weekly-availability-calendar"
+  },
+  "homepage": "https://github.com/meghrajgiri/react-weekly-availability-calendar#readme",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsup",
+    "dev": "vite playground",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "@vitejs/plugin-react": "^6.0.1",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0",
+    "vite": "^8.0.3"
+  },
+  "keywords": [
+    "react",
+    "calendar",
+    "availability",
+    "scheduling",
+    "weekly-calendar",
+    "time-slots"
+  ],
+  "license": "MIT"
+}

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Availability Calendar — Playground</title>
+    <style>
+      * { margin: 0; padding: 0; }
+      body { font-family: sans-serif; background: #f9fafb; }
+      #root { max-width: 960px; margin: 2rem auto; padding: 0 1rem 3rem; }
+
+      /* ─── classNames example styles ─── */
+      .my-grid { border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); border-color: #c7d2fe; }
+      .my-header { background: linear-gradient(135deg, #e0e7ff, #c7d2fe); }
+      .my-header-cell { color: #3730a3; font-weight: 700; text-transform: uppercase; font-size: 11px; letter-spacing: 1px; }
+      .my-time { color: #6366f1; font-weight: 500; }
+      .my-day-col { background: #fafafe; }
+      .my-slot { background: linear-gradient(135deg, #818cf8, #6366f1); border: none; color: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(99,102,241,0.3); }
+      .my-remove-btn { color: rgba(255,255,255,0.7); }
+      .my-remove-btn:hover { background: rgba(255,255,255,0.15); }
+      .my-blocked { background: repeating-linear-gradient(-45deg, transparent, transparent 3px, rgba(239,68,68,0.12) 3px, rgba(239,68,68,0.12) 6px), #fef2f2; border-color: #fca5a5; }
+      .my-preview { background: rgba(99,102,241,0.15); border-color: #818cf8; border-radius: 8px; }
+      .my-ghost { background: linear-gradient(135deg, #818cf8, #6366f1); border: none; color: #fff; border-radius: 8px; box-shadow: 0 12px 32px rgba(99,102,241,0.4); }
+      .my-hour { border-top-color: #c7d2fe; }
+      .my-sub-hour { border-top-color: #e0e7ff; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./main.tsx"></script>
+  </body>
+</html>
