@@ -1,6 +1,6 @@
 {
   "name": "react-weekly-availability-calendar",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A customizable, draggable weekly availability calendar component for React. Create, resize, move time slots with zero external dependencies.",
   "author": "Meghraj Giri",
   "repository": {
