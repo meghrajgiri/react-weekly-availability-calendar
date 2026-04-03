@@ -475,6 +475,7 @@ const CSS_TEXT = /* css */ `
 
 /* ─── Move ghost ─── */
 .ac-move-ghost {
+  box-sizing: border-box;
   pointer-events: none;
   position: fixed;
   z-index: 100;
