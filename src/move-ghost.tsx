@@ -25,7 +25,7 @@ export function AvailabilityCalendarMoveGhost({
     movePointerWorld,
     drag,
     moveGhostSlot,
-    calendarContainerRef,
+    calendarScrollRef,
     daysGridRef,
     timeFormat,
     userClassNames: cx,
@@ -55,7 +55,7 @@ export function AvailabilityCalendarMoveGhost({
       const ghostInsetX = (drag.widthPx - ghostWidthPx) / 2;
       const ghostGrabOffsetX = drag.grabOffsetX - ghostInsetX;
       const containerRect =
-        calendarContainerRef.current?.getBoundingClientRect();
+        calendarScrollRef.current?.getBoundingClientRect();
       const daysGridRect = daysGridRef.current?.getBoundingClientRect();
       const { left: ghostLeft, top: ghostTop } =
         containerRect && daysGridRect

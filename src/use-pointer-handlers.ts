@@ -3,7 +3,6 @@ import {
   useEffect,
   useRef,
   useState,
-  type RefObject,
 } from "react";
 
 import type {
@@ -22,6 +21,7 @@ import {
 import {
   dayIndexFromClientX,
   hhmmToMinutes,
+  mergeAdjacentSlots,
   minutesToHHmm,
   newTempAvailabilitySlotId,
   snapMinutesDown,
@@ -36,15 +36,15 @@ interface UseAvailabilityCalendarPointerHandlersParams {
   rowToMinutes: (rowIndex: number) => number;
   clientYToRow: (clientY: number, columnEl: HTMLElement) => number;
   onSlotsChange: (next: AvailabilitySlot[]) => void;
-  slotsRef: RefObject<AvailabilitySlot[]>;
-  canPlaceRef: RefObject<
-    (
+  slotsRef: { current: AvailabilitySlot[] };
+  canPlaceRef: {
+    current: (
       day: number,
       startM: number,
       endM: number,
       excludeId?: number | string
-    ) => boolean
-  >;
+    ) => boolean;
+  };
 }
 
 /**
@@ -156,7 +156,7 @@ export function useAvailabilityCalendarPointerHandlers({
         );
         if (endM > startM && canPlaceRef.current(dayOfWeek, startM, endM)) {
           const prev = slotsRef.current;
-          const next = [
+          const next = mergeAdjacentSlots([
             ...prev,
             {
               id: newTempAvailabilitySlotId(),
@@ -164,7 +164,7 @@ export function useAvailabilityCalendarPointerHandlers({
               startTime: minutesToHHmm(startM),
               endTime: minutesToHHmm(endM),
             },
-          ];
+          ]);
           slotsRef.current = next;
           onSlotsChange(next);
         }
@@ -270,7 +270,7 @@ export function useAvailabilityCalendarPointerHandlers({
           endM = newEnd;
         }
 
-        const next = prev.map((s) =>
+        const next = mergeAdjacentSlots(prev.map((s) =>
           s.id === slot.id
             ? {
                 ...s,
@@ -278,7 +278,7 @@ export function useAvailabilityCalendarPointerHandlers({
                 endTime: minutesToHHmm(endM),
               }
             : s
-        );
+        ));
         slotsRef.current = next;
         onSlotsChange(next);
       };
@@ -446,7 +446,7 @@ export function useAvailabilityCalendarPointerHandlers({
         }
 
         const prev = slotsRef.current;
-        const next = prev.map((s) =>
+        const next = mergeAdjacentSlots(prev.map((s) =>
           s.id === slot.id
             ? {
                 ...s,
@@ -455,7 +455,7 @@ export function useAvailabilityCalendarPointerHandlers({
                 endTime: minutesToHHmm(newEndM),
               }
             : s
-        );
+        ));
         slotsRef.current = next;
         onSlotsChange(next);
       };

@@ -1,4 +1,4 @@
-import type { DayOfWeek } from "./types";
+import type { AvailabilitySlot, DayOfWeek } from "./types";
 import { CONSULTATION_GRID_START_MINUTES } from "./constants";
 
 /** Generates a unique temporary ID for a newly created availability slot. */
@@ -51,10 +51,10 @@ export function clampGhostToGridArea(
 ): { left: number; top: number } {
   const left = clientX - grabOffsetX;
   const top = clientY - grabOffsetY;
-  const gridBodyTop = daysGrid.top + headerRowPx;
+  const stickyHeaderBottom = container.top + headerRowPx;
   const minL = Math.max(container.left, daysGrid.left);
   const maxL = Math.min(container.right - widthPx, daysGrid.right - widthPx);
-  const minT = Math.max(container.top, gridBodyTop);
+  const minT = Math.max(container.top, daysGrid.top, stickyHeaderBottom);
   const maxT = Math.min(
     container.bottom - heightPx,
     daysGrid.bottom - heightPx
@@ -148,4 +148,54 @@ export function overlaps(
   b: { start: number; end: number }
 ): boolean {
   return a.start < b.end && b.start < a.end;
+}
+
+/**
+ * Merges slots on the same day that touch or overlap into single slots.
+ * Keeps the id of the earliest slot in each merged group.
+ */
+export function mergeAdjacentSlots(slots: AvailabilitySlot[]): AvailabilitySlot[] {
+  const byDay = new Map<DayOfWeek, AvailabilitySlot[]>();
+  for (const s of slots) {
+    let list = byDay.get(s.dayOfWeek);
+    if (!list) {
+      list = [];
+      byDay.set(s.dayOfWeek, list);
+    }
+    list.push(s);
+  }
+
+  const result: AvailabilitySlot[] = [];
+  for (const daySlots of byDay.values()) {
+    daySlots.sort((a, b) => hhmmToMinutes(a.startTime) - hhmmToMinutes(b.startTime));
+    let current = daySlots[0];
+    let curStart = hhmmToMinutes(current.startTime);
+    let curEnd = hhmmToMinutes(current.endTime);
+
+    for (let i = 1; i < daySlots.length; i++) {
+      const next = daySlots[i];
+      const nextStart = hhmmToMinutes(next.startTime);
+      const nextEnd = hhmmToMinutes(next.endTime);
+
+      if (nextStart <= curEnd) {
+        // Touching or overlapping — merge
+        curEnd = Math.max(curEnd, nextEnd);
+      } else {
+        result.push({
+          ...current,
+          startTime: minutesToHHmm(curStart),
+          endTime: minutesToHHmm(curEnd),
+        });
+        current = next;
+        curStart = nextStart;
+        curEnd = nextEnd;
+      }
+    }
+    result.push({
+      ...current,
+      startTime: minutesToHHmm(curStart),
+      endTime: minutesToHHmm(curEnd),
+    });
+  }
+  return result;
 }
