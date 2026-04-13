@@ -27,6 +27,9 @@ import {
   snapMinutesDown,
 } from "./utils";
 
+/** Pointer displacement below which a slot pointerdown→up is treated as a click. */
+const CLICK_MOVEMENT_THRESHOLD_PX = 4;
+
 /** Parameters for the pointer handlers hook. */
 interface UseAvailabilityCalendarPointerHandlersParams {
   readOnly: boolean;
@@ -36,6 +39,7 @@ interface UseAvailabilityCalendarPointerHandlersParams {
   rowToMinutes: (rowIndex: number) => number;
   clientYToRow: (clientY: number, columnEl: HTMLElement) => number;
   onSlotsChange: (next: AvailabilitySlot[]) => void;
+  onSlotClick?: (slot: AvailabilitySlot, event: React.MouseEvent) => void;
   slotsRef: { current: AvailabilitySlot[] };
   canPlaceRef: {
     current: (
@@ -59,6 +63,7 @@ export function useAvailabilityCalendarPointerHandlers({
   rowToMinutes,
   clientYToRow,
   onSlotsChange,
+  onSlotClick,
   slotsRef,
   canPlaceRef,
 }: UseAvailabilityCalendarPointerHandlersParams) {
@@ -77,6 +82,11 @@ export function useAvailabilityCalendarPointerHandlers({
   const daysGridRef = useRef<HTMLDivElement | null>(null);
   const calendarContainerRef = useRef<HTMLDivElement | null>(null);
   const calendarScrollRef = useRef<HTMLDivElement | null>(null);
+
+  // Keep the latest callback in a ref so we don't need to re-bind pointer
+  // handlers every time the consumer passes a new `onSlotClick` identity.
+  const onSlotClickRef = useRef(onSlotClick);
+  onSlotClickRef.current = onSlotClick;
 
   const lockCalendarTouchScroll = useCallback(() => {
     calendarScrollRef.current?.style.setProperty("touch-action", "none");
@@ -316,7 +326,14 @@ export function useAvailabilityCalendarPointerHandlers({
       slot: AvailabilitySlot,
       e: React.PointerEvent<HTMLDivElement>
     ) => {
-      if (readOnly) return;
+      if (readOnly) {
+        // Read-only calendars still surface clicks so consumers can open
+        // details modals or inspect the slot.
+        if (onSlotClickRef.current) {
+          onSlotClickRef.current(slot, e as unknown as React.MouseEvent);
+        }
+        return;
+      }
       if (e.pointerType === "mouse" && e.button !== 0) return;
 
       const raw = e.target;
@@ -342,6 +359,9 @@ export function useAvailabilityCalendarPointerHandlers({
       const pointerId = e.pointerId;
       const initialStartM = hhmmToMinutes(slot.startTime);
       const initialEndM = hhmmToMinutes(slot.endTime);
+      const pointerDownClientX = e.clientX;
+      const pointerDownClientY = e.clientY;
+      let didMove = false;
 
       try {
         col.setPointerCapture(pointerId);
@@ -463,15 +483,27 @@ export function useAvailabilityCalendarPointerHandlers({
       const onMove = (ev: PointerEvent) => {
         if (ev.pointerId !== pointerId) return;
         ev.preventDefault();
+        if (!didMove) {
+          const dx = ev.clientX - pointerDownClientX;
+          const dy = ev.clientY - pointerDownClientY;
+          if (dx * dx + dy * dy > CLICK_MOVEMENT_THRESHOLD_PX ** 2) {
+            didMove = true;
+          }
+        }
         scheduleGhostPosition(ev.clientX, ev.clientY);
       };
 
       const onUp = (ev: PointerEvent) => {
         if (ev.pointerId !== pointerId) return;
-        const last = movePendingPointerRef.current;
-        const cx = last?.x ?? ev.clientX;
-        const cy = last?.y ?? ev.clientY;
-        commitPlacement(cx, cy);
+        if (didMove) {
+          const last = movePendingPointerRef.current;
+          const cx = last?.x ?? ev.clientX;
+          const cy = last?.y ?? ev.clientY;
+          commitPlacement(cx, cy);
+        } else if (onSlotClickRef.current) {
+          // Pointer barely moved — treat as a click.
+          onSlotClickRef.current(slot, e as unknown as React.MouseEvent);
+        }
         endMove();
       };
 

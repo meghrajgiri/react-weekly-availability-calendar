@@ -28,6 +28,7 @@ export function useAvailabilityCalendar({
   classNames: userClassNames,
   renderSlot,
   renderBlockedSlot,
+  onSlotClick,
 }: AvailabilityCalendarProps) {
   const { totalRows, rowToMinutes, minutesToRowIndex, clientYToRow } =
     useConsultationGrid(snapMinutes);
@@ -56,6 +57,7 @@ export function useAvailabilityCalendar({
     rowToMinutes,
     clientYToRow,
     onSlotsChange,
+    onSlotClick,
     slotsRef,
     canPlaceRef,
   });

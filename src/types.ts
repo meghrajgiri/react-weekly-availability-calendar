@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties, MouseEvent, ReactNode } from "react";
 
 /** Days of the week: 0 = Sunday, 1 = Monday, ..., 6 = Saturday */
 export type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6;
@@ -123,6 +123,13 @@ export interface AvailabilityCalendarProps {
   renderSlot?: (slot: AvailabilitySlot, info: SlotRenderInfo) => ReactNode;
   /** Custom render for blocked slot content. Return ReactNode to replace default UI. */
   renderBlockedSlot?: (slot: BlockedSlot) => ReactNode;
+
+  /**
+   * Fired when a slot is clicked without being dragged.
+   * Useful for opening detail modals or secondary actions.
+   * Also fires in `readOnly` mode so consumers can still respond to clicks.
+   */
+  onSlotClick?: (slot: AvailabilitySlot, event: MouseEvent) => void;
 
   /** Additional CSS class name(s) for the root element */
   className?: string;

@@ -62,6 +62,7 @@ function App() {
 | `classNames` | `CalendarClassNames` | — | CSS class overrides per part |
 | `renderSlot` | `(slot, info) => ReactNode` | — | Custom slot content |
 | `renderBlockedSlot` | `(slot) => ReactNode` | — | Custom blocked slot content |
+| `onSlotClick` | `(slot, event) => void` | — | Fires when a slot is clicked without dragging. Also fires in `readOnly` mode. |
 | `className` | `string` | — | Root element class |
 | `style` | `CSSProperties` | — | Root element inline styles |
 
@@ -113,6 +114,22 @@ function App() {
     <span>{slot.label}</span>
   )}
   // ...
+/>
+```
+
+### Reacting to slot clicks
+
+`onSlotClick` fires when a slot is pressed and released without being dragged
+(pointer movement under 4px). Use it to open a detail modal or trigger any
+secondary action. The callback also fires in `readOnly` mode.
+
+```tsx
+<AvailabilityCalendar
+  slots={slots}
+  onSlotsChange={setSlots}
+  snapMinutes={30}
+  timeFormat="12"
+  onSlotClick={(slot) => openSlotModal(slot)}
 />
 ```
 
