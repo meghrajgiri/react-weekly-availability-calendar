@@ -39,7 +39,10 @@ interface UseAvailabilityCalendarPointerHandlersParams {
   rowToMinutes: (rowIndex: number) => number;
   clientYToRow: (clientY: number, columnEl: HTMLElement) => number;
   onSlotsChange: (next: AvailabilitySlot[]) => void;
-  onSlotClick?: (slot: AvailabilitySlot, event: React.MouseEvent) => void;
+  onSlotClick?: (
+    slot: AvailabilitySlot,
+    event: PointerEvent | KeyboardEvent
+  ) => void;
   slotsRef: { current: AvailabilitySlot[] };
   canPlaceRef: {
     current: (
@@ -326,15 +329,46 @@ export function useAvailabilityCalendarPointerHandlers({
       slot: AvailabilitySlot,
       e: React.PointerEvent<HTMLDivElement>
     ) => {
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+
       if (readOnly) {
         // Read-only calendars still surface clicks so consumers can open
-        // details modals or inspect the slot.
-        if (onSlotClickRef.current) {
-          onSlotClickRef.current(slot, e as unknown as React.MouseEvent);
-        }
+        // detail modals or inspect the slot. We use the same
+        // pointerup + movement-threshold pattern as the drag path so a
+        // touch-scroll over a slot on mobile does not accidentally fire
+        // the handler.
+        if (!onSlotClickRef.current) return;
+
+        const pointerId = e.pointerId;
+        const pointerDownClientX = e.clientX;
+        const pointerDownClientY = e.clientY;
+        let didMove = false;
+
+        const ac = new AbortController();
+        const opts: AddEventListenerOptions = {
+          signal: ac.signal,
+          capture: true,
+        };
+        const onReadOnlyMove = (ev: PointerEvent) => {
+          if (ev.pointerId !== pointerId || didMove) return;
+          const dx = ev.clientX - pointerDownClientX;
+          const dy = ev.clientY - pointerDownClientY;
+          if (dx * dx + dy * dy > CLICK_MOVEMENT_THRESHOLD_PX ** 2) {
+            didMove = true;
+          }
+        };
+        const onReadOnlyUp = (ev: PointerEvent) => {
+          if (ev.pointerId !== pointerId) return;
+          ac.abort();
+          if (!didMove && onSlotClickRef.current) {
+            onSlotClickRef.current(slot, ev);
+          }
+        };
+        document.addEventListener("pointermove", onReadOnlyMove, opts);
+        document.addEventListener("pointerup", onReadOnlyUp, opts);
+        document.addEventListener("pointercancel", onReadOnlyUp, opts);
         return;
       }
-      if (e.pointerType === "mouse" && e.button !== 0) return;
 
       const raw = e.target;
       if (!(raw instanceof Element)) return;
@@ -501,8 +535,10 @@ export function useAvailabilityCalendarPointerHandlers({
           const cy = last?.y ?? ev.clientY;
           commitPlacement(cx, cy);
         } else if (onSlotClickRef.current) {
-          // Pointer barely moved — treat as a click.
-          onSlotClickRef.current(slot, e as unknown as React.MouseEvent);
+          // Pointer barely moved — treat as a click. Pass the native
+          // pointerup event so consumers get the actual click coordinates
+          // rather than the cached pointerdown event.
+          onSlotClickRef.current(slot, ev);
         }
         endMove();
       };

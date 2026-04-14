@@ -1,4 +1,4 @@
-import type { CSSProperties, MouseEvent, ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 /** Days of the week: 0 = Sunday, 1 = Monday, ..., 6 = Saturday */
 export type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6;
@@ -125,11 +125,20 @@ export interface AvailabilityCalendarProps {
   renderBlockedSlot?: (slot: BlockedSlot) => ReactNode;
 
   /**
-   * Fired when a slot is clicked without being dragged.
-   * Useful for opening detail modals or secondary actions.
-   * Also fires in `readOnly` mode so consumers can still respond to clicks.
+   * Fired when a slot is activated without being dragged.
+   *
+   * - For pointer interactions: the slot pointerdown→pointerup with under
+   *   4px of movement; `event` is the native pointerup `PointerEvent`.
+   * - For keyboard interactions: Enter or Space on a focused slot;
+   *   `event` is the native `KeyboardEvent`.
+   *
+   * Useful for opening detail modals or secondary actions. Also fires
+   * in `readOnly` mode so consumers can still respond to activation.
    */
-  onSlotClick?: (slot: AvailabilitySlot, event: MouseEvent) => void;
+  onSlotClick?: (
+    slot: AvailabilitySlot,
+    event: PointerEvent | KeyboardEvent
+  ) => void;
 
   /** Additional CSS class name(s) for the root element */
   className?: string;

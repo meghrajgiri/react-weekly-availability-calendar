@@ -121,6 +121,7 @@ export function useAvailabilityCalendar({
     userClassNames,
     renderSlot,
     renderBlockedSlot,
+    onSlotClick,
     slots,
     blockedSlots,
     drag,

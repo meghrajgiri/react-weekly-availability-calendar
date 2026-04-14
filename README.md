@@ -119,9 +119,14 @@ function App() {
 
 ### Reacting to slot clicks
 
-`onSlotClick` fires when a slot is pressed and released without being dragged
-(pointer movement under 4px). Use it to open a detail modal or trigger any
-secondary action. The callback also fires in `readOnly` mode.
+`onSlotClick` fires when a slot is activated without being dragged. The
+callback also fires in `readOnly` mode.
+
+- **Pointer**: pointerdown→pointerup with under 4px of movement. The `event`
+  argument is the native pointerup `PointerEvent`.
+- **Keyboard**: Enter or Space on a focused slot. The `event` argument is the
+  native `KeyboardEvent`. When `onSlotClick` is provided, slots are exposed
+  as `role="button"` with `tabIndex={0}` for keyboard focus.
 
 ```tsx
 <AvailabilityCalendar
@@ -129,7 +134,14 @@ secondary action. The callback also fires in `readOnly` mode.
   onSlotsChange={setSlots}
   snapMinutes={30}
   timeFormat="12"
-  onSlotClick={(slot) => openSlotModal(slot)}
+  onSlotClick={(slot, event) => {
+    // 'key' in event narrows to KeyboardEvent in a way that's safe in
+    // SSR/JSDOM where the global KeyboardEvent constructor may be undefined.
+    if ('key' in event) {
+      // activated via Enter or Space
+    }
+    openSlotModal(slot);
+  }}
 />
 ```
 
