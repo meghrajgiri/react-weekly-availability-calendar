@@ -62,6 +62,7 @@ function App() {
 | `classNames` | `CalendarClassNames` | — | CSS class overrides per part |
 | `renderSlot` | `(slot, info) => ReactNode` | — | Custom slot content |
 | `renderBlockedSlot` | `(slot) => ReactNode` | — | Custom blocked slot content |
+| `onSlotClick` | `(slot, event) => void` | — | Fires when a slot is clicked without dragging. Also fires in `readOnly` mode. |
 | `className` | `string` | — | Root element class |
 | `style` | `CSSProperties` | — | Root element inline styles |
 
@@ -113,6 +114,34 @@ function App() {
     <span>{slot.label}</span>
   )}
   // ...
+/>
+```
+
+### Reacting to slot clicks
+
+`onSlotClick` fires when a slot is activated without being dragged. The
+callback also fires in `readOnly` mode.
+
+- **Pointer**: pointerdown→pointerup with under 4px of movement. The `event`
+  argument is the native pointerup `PointerEvent`.
+- **Keyboard**: Enter or Space on a focused slot. The `event` argument is the
+  native `KeyboardEvent`. When `onSlotClick` is provided, slots are exposed
+  as `role="button"` with `tabIndex={0}` for keyboard focus.
+
+```tsx
+<AvailabilityCalendar
+  slots={slots}
+  onSlotsChange={setSlots}
+  snapMinutes={30}
+  timeFormat="12"
+  onSlotClick={(slot, event) => {
+    // 'key' in event narrows to KeyboardEvent in a way that's safe in
+    // SSR/JSDOM where the global KeyboardEvent constructor may be undefined.
+    if ('key' in event) {
+      // activated via Enter or Space
+    }
+    openSlotModal(slot);
+  }}
 />
 ```
 
