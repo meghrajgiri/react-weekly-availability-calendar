@@ -312,7 +312,7 @@ const CSS_TEXT = /* css */ `
   overflow: hidden;
   border-radius: 0.5rem;
   border: 1px solid var(--ac-slot-border, var(--ac-border));
-  background: var(--ac-accent);
+  background: var(--ac-slot-color, var(--ac-accent));
   font-size: 0.75rem;
   line-height: 1rem;
   color: var(--ac-accent-fg);

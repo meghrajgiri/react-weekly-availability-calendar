@@ -199,3 +199,57 @@ export function mergeAdjacentSlots(slots: AvailabilitySlot[]): AvailabilitySlot[
   }
   return result;
 }
+
+/**
+ * Gets the day name for a given day of week using Intl API.
+ * @param dayOfWeek - Day of week (0 = Sunday, 1 = Monday, etc.)
+ * @param locale - BCP47 language tag (e.g., "en-US", "de-DE")
+ * @param format - "short" (e.g., "Sun") or "long" (e.g., "Sunday")
+ */
+export function getIntlDayName(
+  dayOfWeek: DayOfWeek,
+  locale: string = "en-US",
+  format: "short" | "long" = "short"
+): string {
+  // Create a date that corresponds to the day of week (using a Sunday-based date)
+  const baseDate = new Date(2024, 0, 7); // A Sunday
+  const targetDate = new Date(baseDate.getTime() + dayOfWeek * 24 * 60 * 60 * 1000);
+  
+  return new Intl.DateTimeFormat(locale, {
+    weekday: format,
+  }).format(targetDate);
+}
+
+/**
+ * Formats time using the Intl API for locale-aware formatting.
+ * @param minutes - Minutes since midnight
+ * @param timeFormat - "12" or "24" hour format
+ * @param locale - BCP47 language tag
+ */
+export function formatClockIntl(
+  minutes: number,
+  timeFormat: "12" | "24",
+  locale: string = "en-US"
+): { primary: string } {
+  if (minutes >= 24 * 60) {
+    if (timeFormat === "24") {
+      return { primary: "24:00" };
+    }
+    return { primary: "12:00 AM" };
+  }
+
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  
+  const date = new Date();
+  date.setHours(h, m, 0, 0);
+  
+  const formatted = new Intl.DateTimeFormat(locale, {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: timeFormat === "12",
+  }).format(date);
+  
+  return { primary: formatted };
+}
+}

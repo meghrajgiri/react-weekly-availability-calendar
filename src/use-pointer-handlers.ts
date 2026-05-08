@@ -1,9 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type {
   AvailabilitySlot,
@@ -42,7 +37,7 @@ interface UseAvailabilityCalendarPointerHandlersParams {
       day: number,
       startM: number,
       endM: number,
-      excludeId?: number | string
+      excludeId?: number | string,
     ) => boolean;
   };
 }
@@ -63,7 +58,7 @@ export function useAvailabilityCalendarPointerHandlers({
   canPlaceRef,
 }: UseAvailabilityCalendarPointerHandlersParams) {
   const [drag, setDrag] = useState<CreateDrag | ResizeDrag | MoveDrag | null>(
-    null
+    null,
   );
 
   const [movePointerWorld, setMovePointerWorld] = useState<{
@@ -114,6 +109,8 @@ export function useAvailabilityCalendarPointerHandlers({
         currentRow: startRow,
         pointerId,
         columnEl: col,
+        startDayOfWeek: dayOfWeek,
+        currentDayOfWeek: dayOfWeek,
       });
 
       const ac = new AbortController();
@@ -133,14 +130,30 @@ export function useAvailabilityCalendarPointerHandlers({
         if (ev.pointerId !== pointerId) return;
         ev.preventDefault();
         const r = clientYToRow(ev.clientY, col);
-        setDrag((prev) =>
-          prev &&
-          prev.kind === "create" &&
-          prev.pointerId === pointerId &&
-          prev.dayOfWeek === dayOfWeek
-            ? { ...prev, currentRow: r }
-            : prev
-        );
+
+        // Detect which day column the pointer is over
+        const daysGrid = daysGridRef.current;
+        if (daysGrid) {
+          const currentDay = dayIndexFromClientX(
+            ev.clientX,
+            daysGrid,
+            orderedDays,
+          );
+          setDrag((prev) =>
+            prev && prev.kind === "create" && prev.pointerId === pointerId
+              ? { ...prev, currentRow: r, currentDayOfWeek: currentDay }
+              : prev,
+          );
+        } else {
+          setDrag((prev) =>
+            prev &&
+            prev.kind === "create" &&
+            prev.pointerId === pointerId &&
+            prev.dayOfWeek === dayOfWeek
+              ? { ...prev, currentRow: r }
+              : prev,
+          );
+        }
       };
 
       const onUp = (ev: PointerEvent) => {
@@ -152,21 +165,44 @@ export function useAvailabilityCalendarPointerHandlers({
         const startM = rowToMinutes(low);
         const endM = Math.min(
           CONSULTATION_GRID_END_MINUTES,
-          rowToMinutes(high + 1)
+          rowToMinutes(high + 1),
         );
-        if (endM > startM && canPlaceRef.current(dayOfWeek, startM, endM)) {
+
+        if (endM > startM) {
           const prev = slotsRef.current;
-          const next = mergeAdjacentSlots([
-            ...prev,
-            {
-              id: newTempAvailabilitySlotId(),
-              dayOfWeek,
-              startTime: minutesToHHmm(startM),
-              endTime: minutesToHHmm(endM),
-            },
-          ]);
-          slotsRef.current = next;
-          onSlotsChange(next);
+          const newSlots: AvailabilitySlot[] = [];
+
+          // Detect which day the pointer is over for multi-day support
+          const daysGrid = daysGridRef.current;
+          let endDay = dayOfWeek;
+          if (daysGrid) {
+            endDay = dayIndexFromClientX(ev.clientX, daysGrid, orderedDays);
+          }
+
+          // Determine the range of days (handle both forward and reverse dragging)
+          const startDayIndex = orderedDays.indexOf(dayOfWeek);
+          const endDayIndex = orderedDays.indexOf(endDay);
+          const minDayIndex = Math.min(startDayIndex, endDayIndex);
+          const maxDayIndex = Math.max(startDayIndex, endDayIndex);
+
+          // Create slots for all days in the range
+          for (let i = minDayIndex; i <= maxDayIndex; i++) {
+            const slotDay = orderedDays[i];
+            if (canPlaceRef.current(slotDay, startM, endM)) {
+              newSlots.push({
+                id: newTempAvailabilitySlotId(),
+                dayOfWeek: slotDay,
+                startTime: minutesToHHmm(startM),
+                endTime: minutesToHHmm(endM),
+              });
+            }
+          }
+
+          if (newSlots.length > 0) {
+            const next = mergeAdjacentSlots([...prev, ...newSlots]);
+            slotsRef.current = next;
+            onSlotsChange(next);
+          }
         }
         endDrag();
       };
@@ -190,21 +226,19 @@ export function useAvailabilityCalendarPointerHandlers({
       unlockCalendarTouchScroll,
       canPlaceRef,
       slotsRef,
-    ]
+      orderedDays,
+      daysGridRef,
+    ],
   );
 
   const handleResizePointerDown = useCallback(
-    (
-      slot: AvailabilitySlot,
-      edge: "start" | "end",
-      e: React.PointerEvent
-    ) => {
+    (slot: AvailabilitySlot, edge: "start" | "end", e: React.PointerEvent) => {
       if (readOnly) return;
       if (e.pointerType === "mouse" && e.button !== 0) return;
       e.stopPropagation();
       e.preventDefault();
       const col = (e.currentTarget as HTMLElement).closest(
-        "[data-day-column-body]"
+        "[data-day-column-body]",
       ) as HTMLElement | null;
       if (!col) return;
 
@@ -251,7 +285,7 @@ export function useAvailabilityCalendarPointerHandlers({
           let newStart = snapMinutesDown(rowToMinutes(row), snapMinutes);
           newStart = Math.max(
             CONSULTATION_GRID_START_MINUTES,
-            Math.min(newStart, endM - snapMinutes)
+            Math.min(newStart, endM - snapMinutes),
           );
           if (!canPlaceRef.current(slot.dayOfWeek, newStart, endM, slot.id)) {
             return;
@@ -270,15 +304,17 @@ export function useAvailabilityCalendarPointerHandlers({
           endM = newEnd;
         }
 
-        const next = mergeAdjacentSlots(prev.map((s) =>
-          s.id === slot.id
-            ? {
-                ...s,
-                startTime: minutesToHHmm(startM),
-                endTime: minutesToHHmm(endM),
-              }
-            : s
-        ));
+        const next = mergeAdjacentSlots(
+          prev.map((s) =>
+            s.id === slot.id
+              ? {
+                  ...s,
+                  startTime: minutesToHHmm(startM),
+                  endTime: minutesToHHmm(endM),
+                }
+              : s,
+          ),
+        );
         slotsRef.current = next;
         onSlotsChange(next);
       };
@@ -308,14 +344,11 @@ export function useAvailabilityCalendarPointerHandlers({
       unlockCalendarTouchScroll,
       canPlaceRef,
       slotsRef,
-    ]
+    ],
   );
 
   const handleSlotMovePointerDown = useCallback(
-    (
-      slot: AvailabilitySlot,
-      e: React.PointerEvent<HTMLDivElement>
-    ) => {
+    (slot: AvailabilitySlot, e: React.PointerEvent<HTMLDivElement>) => {
       if (readOnly) return;
       if (e.pointerType === "mouse" && e.button !== 0) return;
 
@@ -328,7 +361,7 @@ export function useAvailabilityCalendarPointerHandlers({
       e.stopPropagation();
 
       const col = (e.currentTarget as HTMLElement).closest(
-        "[data-day-column-body]"
+        "[data-day-column-body]",
       ) as HTMLElement | null;
       if (!col) return;
 
@@ -446,16 +479,18 @@ export function useAvailabilityCalendarPointerHandlers({
         }
 
         const prev = slotsRef.current;
-        const next = mergeAdjacentSlots(prev.map((s) =>
-          s.id === slot.id
-            ? {
-                ...s,
-                dayOfWeek: newDay,
-                startTime: minutesToHHmm(newStartM),
-                endTime: minutesToHHmm(newEndM),
-              }
-            : s
-        ));
+        const next = mergeAdjacentSlots(
+          prev.map((s) =>
+            s.id === slot.id
+              ? {
+                  ...s,
+                  dayOfWeek: newDay,
+                  startTime: minutesToHHmm(newStartM),
+                  endTime: minutesToHHmm(newEndM),
+                }
+              : s,
+          ),
+        );
         slotsRef.current = next;
         onSlotsChange(next);
       };
@@ -495,7 +530,7 @@ export function useAvailabilityCalendarPointerHandlers({
       unlockCalendarTouchScroll,
       canPlaceRef,
       slotsRef,
-    ]
+    ],
   );
 
   useEffect(() => {

@@ -2,7 +2,7 @@ import { useCallback, useMemo } from "react";
 
 import { ROW_HEIGHT_PX, getDayLabel, getOrderedDays } from "./constants";
 import { getRowTopBorderClassName } from "./row-styles";
-import { formatClock } from "./utils";
+import { formatClock, formatClockIntl } from "./utils";
 import { useAvailabilityCalendarPlacement } from "./use-placement";
 import { useAvailabilityCalendarPointerHandlers } from "./use-pointer-handlers";
 import { useConsultationGrid } from "./use-grid";
@@ -25,6 +25,7 @@ export function useAvailabilityCalendar({
   startDay = 0,
   dayLabelFormat = "short",
   gridLineStyle = "dashed",
+  locale,
   classNames: userClassNames,
   renderSlot,
   renderBlockedSlot,
@@ -61,8 +62,8 @@ export function useAvailabilityCalendar({
   });
 
   const dayLabels = useMemo(
-    () => orderedDays.map((d) => getDayLabel(d, dayLabelFormat)),
-    [orderedDays, dayLabelFormat]
+    () => orderedDays.map((d) => getDayLabel(d, dayLabelFormat, locale)),
+    [orderedDays, dayLabelFormat, locale],
   );
 
   const removeSlot = (id: number | string) => {
@@ -74,13 +75,16 @@ export function useAvailabilityCalendar({
 
   const timeLabels = useMemo(() => {
     const labels: (string | null)[] = [];
+    const formatter = locale
+      ? (m: number) => formatClockIntl(m, timeFormat, locale).primary
+      : (m: number) => formatClock(m, timeFormat).primary;
     for (let i = 0; i < totalRows; i++) {
       const m = rowToMinutes(i);
       const isHour = m % 60 === 0;
-      labels.push(isHour ? formatClock(m, timeFormat).primary : null);
+      labels.push(isHour ? formatter(m) : null);
     }
     return labels;
-  }, [totalRows, rowToMinutes, timeFormat]);
+  }, [totalRows, rowToMinutes, timeFormat, locale]);
 
   const rowTopBorderClass = useCallback(
     (rowIndex: number) =>
@@ -89,15 +93,29 @@ export function useAvailabilityCalendar({
         snapMinutes,
         gridLineStyle,
         userClassNames?.hourLine,
-        userClassNames?.subHourLine
+        userClassNames?.subHourLine,
       ),
-    [snapMinutes, gridLineStyle, userClassNames?.hourLine, userClassNames?.subHourLine]
+    [
+      snapMinutes,
+      gridLineStyle,
+      userClassNames?.hourLine,
+      userClassNames?.subHourLine,
+    ],
   );
 
   const createPreview =
     drag?.kind === "create"
       ? {
+          // Support both single-day and multi-day previews
           dayOfWeek: drag.dayOfWeek,
+          daysRange:
+            drag.startDayOfWeek && drag.currentDayOfWeek
+              ? {
+                  start: drag.startDayOfWeek,
+                  end: drag.currentDayOfWeek,
+                  orderedDays,
+                }
+              : undefined,
           top: Math.min(drag.startRow, drag.currentRow) * ROW_HEIGHT_PX,
           height:
             (Math.abs(drag.currentRow - drag.startRow) + 1) * ROW_HEIGHT_PX,
@@ -113,6 +131,7 @@ export function useAvailabilityCalendar({
     readOnly,
     snapMinutes,
     timeFormat,
+    locale,
     gridLineStyle,
     orderedDays,
     dayLabels,

@@ -1,11 +1,9 @@
 import { XIcon } from "./icons";
 import { cn } from "./cn";
-import {
-  CALENDAR_HEADER_ROW_PX,
-  ROW_HEIGHT_PX,
-} from "./constants";
+import { CALENDAR_HEADER_ROW_PX, ROW_HEIGHT_PX } from "./constants";
 import {
   formatClock,
+  formatClockIntl,
   formatDurationLabel,
   hhmmToMinutes,
 } from "./utils";
@@ -33,6 +31,7 @@ export function AvailabilityCalendarGrid({
     minutesToRowIndex,
     slots,
     timeFormat,
+    locale,
     orderedDays,
     dayLabels,
     userClassNames: cx,
@@ -52,7 +51,7 @@ export function AvailabilityCalendarGrid({
       className={cn(
         "ac-grid-container",
         !readOnly && drag?.kind === "move" && "ac-grid-container--grabbing",
-        cx?.gridContainer
+        cx?.gridContainer,
       )}
     >
       <div ref={calendarScrollRef} className="ac-grid-scroll">
@@ -80,7 +79,7 @@ export function AvailabilityCalendarGrid({
                   >
                     <span>{label}</span>
                   </div>
-                ) : null
+                ) : null,
               )}
             </div>
           </div>
@@ -103,9 +102,16 @@ export function AvailabilityCalendarGrid({
             </div>
 
             {/* Body grid */}
-            <div ref={daysGridRef} className="ac-days-grid" data-calendar-days-grid>
+            <div
+              ref={daysGridRef}
+              className="ac-days-grid"
+              data-calendar-days-grid
+            >
               {orderedDays.map((dayOfWeek: DayOfWeek, colIndex) => (
-                <div key={dayOfWeek} className={cn("ac-day-column", cx?.dayColumn)}>
+                <div
+                  key={dayOfWeek}
+                  className={cn("ac-day-column", cx?.dayColumn)}
+                >
                   <div
                     data-day-column-body
                     aria-label={dayLabels[colIndex]}
@@ -115,7 +121,7 @@ export function AvailabilityCalendarGrid({
                         (drag?.kind === "move"
                           ? "ac-day-body--grabbing"
                           : "ac-day-body--crosshair"),
-                      drag?.kind === "create" && "ac-day-body--touch-none"
+                      drag?.kind === "create" && "ac-day-body--touch-none",
                     )}
                     style={{ height: totalRows * ROW_HEIGHT_PX }}
                     onPointerDown={(e) => handleGridPointerDown(dayOfWeek, e)}
@@ -133,16 +139,63 @@ export function AvailabilityCalendarGrid({
                     ))}
 
                     {/* Create preview */}
-                    {createPreview &&
-                      createPreview.dayOfWeek === dayOfWeek && (
-                        <div
-                          className={cn("ac-create-preview", cx?.createPreview)}
-                          style={{
-                            top: createPreview.top,
-                            height: createPreview.height,
-                          }}
-                        />
-                      )}
+                    {createPreview && (
+                      <>
+                        {/* Single-day preview */}
+                        {!createPreview.daysRange &&
+                          createPreview.dayOfWeek === dayOfWeek && (
+                            <div
+                              className={cn(
+                                "ac-create-preview",
+                                cx?.createPreview,
+                              )}
+                              style={{
+                                top: createPreview.top,
+                                height: createPreview.height,
+                              }}
+                            />
+                          )}
+                        {/* Multi-day preview */}
+                        {createPreview.daysRange &&
+                          (() => {
+                            const {
+                              start,
+                              end,
+                              orderedDays: days,
+                            } = createPreview.daysRange;
+                            const startDayIndex = days.indexOf(start);
+                            const endDayIndex = days.indexOf(end);
+                            const minDayIndex = Math.min(
+                              startDayIndex,
+                              endDayIndex,
+                            );
+                            const maxDayIndex = Math.max(
+                              startDayIndex,
+                              endDayIndex,
+                            );
+                            const previewDays = days.slice(
+                              minDayIndex,
+                              maxDayIndex + 1,
+                            );
+
+                            if (previewDays.includes(dayOfWeek)) {
+                              return (
+                                <div
+                                  className={cn(
+                                    "ac-create-preview",
+                                    cx?.createPreview,
+                                  )}
+                                  style={{
+                                    top: createPreview.top,
+                                    height: createPreview.height,
+                                  }}
+                                />
+                              );
+                            }
+                            return null;
+                          })()}
+                      </>
+                    )}
 
                     {/* Blocked slots */}
                     {blockedSlots
@@ -162,7 +215,7 @@ export function AvailabilityCalendarGrid({
                               "ac-blocked-label",
                               h >= ROW_HEIGHT_PX * 2
                                 ? "ac-blocked-label--sm"
-                                : "ac-blocked-label--xs"
+                                : "ac-blocked-label--xs",
                             )}
                           >
                             {b.label}
@@ -196,8 +249,12 @@ export function AvailabilityCalendarGrid({
                           (minutesToRowIndex(em) - minutesToRowIndex(sm)) *
                           ROW_HEIGHT_PX;
                         const dur = em - sm;
-                        const startLbl = formatClock(sm, timeFormat).primary;
-                        const endLbl = formatClock(em, timeFormat).primary;
+                        const formatter = locale
+                          ? (m: number) =>
+                              formatClockIntl(m, timeFormat, locale).primary
+                          : (m: number) => formatClock(m, timeFormat).primary;
+                        const startLbl = formatter(sm);
+                        const endLbl = formatter(em);
                         const slotHeight = Math.max(h, ROW_HEIGHT_PX);
                         const isCompactSlot = slotHeight < ROW_HEIGHT_PX * 2;
                         const durationLabel = formatDurationLabel(dur);
@@ -247,11 +304,15 @@ export function AvailabilityCalendarGrid({
                               drag?.kind === "move" &&
                                 drag.slotId === s.id &&
                                 "ac-slot--hidden",
-                              cx?.slot
+                              cx?.slot,
                             )}
                             style={{
                               top,
                               height: slotHeight,
+                              ...(s.color &&
+                                ({
+                                  "--ac-slot-color": s.color,
+                                } as any)),
                             }}
                             onPointerDown={(e) =>
                               handleSlotMovePointerDown(s, e)
@@ -266,12 +327,10 @@ export function AvailabilityCalendarGrid({
                                     isCompactSlot
                                       ? "ac-slot-remove-btn--compact"
                                       : "ac-slot-remove-btn--tall",
-                                    cx?.slotRemoveButton
+                                    cx?.slotRemoveButton,
                                   )}
                                   aria-label="Remove slot"
-                                  onPointerDown={(ev) =>
-                                    ev.stopPropagation()
-                                  }
+                                  onPointerDown={(ev) => ev.stopPropagation()}
                                   onClick={() => removeSlot(s.id)}
                                 >
                                   <XIcon />

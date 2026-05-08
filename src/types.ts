@@ -10,6 +10,8 @@ export interface AvailabilitySlot {
   startTime: string;
   /** End time in "HH:mm" format (24-hour) */
   endTime: string;
+  /** Optional custom color for this slot (hex, rgb, or named color) */
+  color?: string;
 }
 
 export interface BlockedSlot {
@@ -113,6 +115,8 @@ export interface AvailabilityCalendarProps {
   dayLabelFormat?: "short" | "long" | ((day: DayOfWeek) => string);
   /** Style for snap-increment grid lines (default: "dashed") */
   gridLineStyle?: "solid" | "dashed" | "dotted";
+  /** Locale for day names and time formatting (default: "en-US") */
+  locale?: string;
 
   /** Theme overrides for colors */
   theme?: CalendarTheme;
@@ -137,6 +141,10 @@ export type CreateDrag = {
   currentRow: number;
   pointerId: number;
   columnEl: HTMLElement;
+  /** For multi-day drag: the initial day when drag started */
+  startDayOfWeek?: DayOfWeek;
+  /** For multi-day drag: the current day being dragged over */
+  currentDayOfWeek?: DayOfWeek;
 };
 
 export type ResizeDrag = {
