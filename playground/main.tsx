@@ -139,10 +139,44 @@ function ClassNamesExample() {
   );
 }
 
+function OnSlotClickExample() {
+  const [slots, setSlots] = useState<AvailabilitySlot[]>(initialSlots);
+  const [lastClicked, setLastClicked] = useState<AvailabilitySlot | null>(null);
+
+  return (
+    <div>
+      <h2 style={{ margin: '0 0 0.75rem', fontSize: 18, fontWeight: 600 }}>
+        onSlotClick
+      </h2>
+      <p style={{ margin: '0 0 0.75rem', color: '#6b7280', fontSize: 13 }}>
+        Click a slot (without dragging) to select it. Dragging still moves the
+        slot as usual.
+      </p>
+      {lastClicked && (
+        <div style={{ margin: '0 0 0.75rem', fontSize: 13 }}>
+          Clicked slot {String(lastClicked.id)}: {lastClicked.startTime}–
+          {lastClicked.endTime}
+        </div>
+      )}
+      <div style={{ height: '60vh' }}>
+        <AvailabilityCalendar
+          slots={slots}
+          onSlotsChange={setSlots}
+          blockedSlots={blockedSlots}
+          snapMinutes={30}
+          timeFormat='12'
+          onSlotClick={(slot) => setLastClicked(slot)}
+        />
+      </div>
+    </div>
+  );
+}
+
 function App() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
       <DefaultExample />
+      <OnSlotClickExample />
       <CustomizedExample />
       <ClassNamesExample />
     </div>

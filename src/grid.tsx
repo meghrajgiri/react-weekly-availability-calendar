@@ -38,6 +38,7 @@ export function AvailabilityCalendarGrid({
     userClassNames: cx,
     renderSlot,
     renderBlockedSlot,
+    onSlotClick,
     handleGridPointerDown,
     handleResizePointerDown,
     handleSlotMovePointerDown,
@@ -234,10 +235,29 @@ export function AvailabilityCalendarGrid({
                             })
                           : null;
 
+                        const handleSlotKeyboardActivate = onSlotClick
+                          ? (e: React.KeyboardEvent<HTMLDivElement>) => {
+                              // Only fire when the slot itself is focused —
+                              // Enter on the inner remove button must
+                              // activate the button.
+                              if (e.target !== e.currentTarget) return;
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                onSlotClick(s, e.nativeEvent);
+                              }
+                            }
+                          : undefined;
                         return (
                           <div
                             key={String(s.id)}
                             data-availability-block
+                            tabIndex={handleSlotKeyboardActivate ? 0 : undefined}
+                            role={handleSlotKeyboardActivate ? "button" : undefined}
+                            aria-label={
+                              handleSlotKeyboardActivate
+                                ? `Slot ${startLbl} to ${endLbl} on ${dayLabels[colIndex]}`
+                                : undefined
+                            }
                             className={cn(
                               "ac-slot",
                               !readOnly && "ac-slot--interactive",
@@ -256,6 +276,7 @@ export function AvailabilityCalendarGrid({
                             onPointerDown={(e) =>
                               handleSlotMovePointerDown(s, e)
                             }
+                            onKeyDown={handleSlotKeyboardActivate}
                           >
                             {!readOnly && (
                               <>

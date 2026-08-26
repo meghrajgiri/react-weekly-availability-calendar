@@ -124,6 +124,22 @@ export interface AvailabilityCalendarProps {
   /** Custom render for blocked slot content. Return ReactNode to replace default UI. */
   renderBlockedSlot?: (slot: BlockedSlot) => ReactNode;
 
+  /**
+   * Fired when a slot is activated without being dragged.
+   *
+   * - For pointer interactions: the slot pointerdown→pointerup with under
+   *   4px of movement; `event` is the native pointerup `PointerEvent`.
+   * - For keyboard interactions: Enter or Space on a focused slot;
+   *   `event` is the native `KeyboardEvent`.
+   *
+   * Useful for opening detail modals or secondary actions. Also fires
+   * in `readOnly` mode so consumers can still respond to activation.
+   */
+  onSlotClick?: (
+    slot: AvailabilitySlot,
+    event: PointerEvent | KeyboardEvent
+  ) => void;
+
   /** Additional CSS class name(s) for the root element */
   className?: string;
   /** Inline styles for the root element */
