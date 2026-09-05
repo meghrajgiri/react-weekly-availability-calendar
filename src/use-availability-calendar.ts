@@ -91,7 +91,7 @@ export function useAvailabilityCalendar({
     canPlaceRef,
   });
 
-  const { handleSlotKeyDown, handleColumnKeyDown, announcement } =
+  const { handleSlotKeyDown, addSlotToDay, announcement } =
     useAvailabilityCalendarKeyboard({
       readOnly,
       snapMinutes,
@@ -205,7 +205,7 @@ export function useAvailabilityCalendar({
     handleResizePointerDown,
     handleSlotMovePointerDown,
     handleSlotKeyDown,
-    handleColumnKeyDown,
+    addSlotToDay,
     announcement,
     removeSlot,
   };

@@ -48,7 +48,7 @@ export function AvailabilityCalendarGrid({
     handleResizePointerDown,
     handleSlotMovePointerDown,
     handleSlotKeyDown,
-    handleColumnKeyDown,
+    addSlotToDay,
     announcement,
     removeSlot,
   } = model;
@@ -69,7 +69,13 @@ export function AvailabilityCalendarGrid({
       <div className="ac-sr-only" role="status" aria-live="polite">
         {announcement}
       </div>
-      <div ref={calendarScrollRef} className="ac-grid-scroll">
+      <div
+        ref={calendarScrollRef}
+        className="ac-grid-scroll"
+        // A scrollable region has to be focusable, or a keyboard user cannot
+        // scroll to content that is out of view.
+        tabIndex={0}
+      >
         <div className="ac-grid-inner">
           {/* Time column */}
           <div className="ac-time-column">
@@ -149,18 +155,12 @@ export function AvailabilityCalendarGrid({
                 >
                   <div
                     data-day-column-body
-                    // Focusable so the calendar can be operated without a
-                    // pointer: Enter creates a slot at the first free time.
-                    tabIndex={readOnly ? undefined : 0}
-                    role={readOnly ? undefined : "button"}
-                    aria-label={
-                      readOnly
-                        ? dayLabels[colIndex]
-                        : `${dayLabels[colIndex]}. Press Enter to add availability.`
-                    }
-                    onKeyDown={(e) => {
-                      if (handleColumnKeyDown(dayOfWeek, e)) e.preventDefault();
-                    }}
+                    // A labelled group, deliberately not a control. It contains
+                    // the slot buttons, and nesting interactive elements
+                    // confuses screen readers and keyboard focus. Creation is
+                    // handled by the sibling button below.
+                    role="group"
+                    aria-label={dayLabels[colIndex]}
                     className={cn(
                       "ac-day-body",
                       !readOnly &&
@@ -172,6 +172,19 @@ export function AvailabilityCalendarGrid({
                     style={{ height: totalRows * ROW_HEIGHT_PX }}
                     onPointerDown={(e) => handleGridPointerDown(dayOfWeek, e)}
                   >
+                    {!readOnly && (
+                      <button
+                        type="button"
+                        data-add-slot
+                        className="ac-add-slot"
+                        // Hidden until focused, so it is available to keyboard
+                        // users without adding visual noise for everyone else.
+                        onClick={() => addSlotToDay(dayOfWeek)}
+                        onPointerDown={(e) => e.stopPropagation()}
+                      >
+                        {`Add availability to ${dayLabels[colIndex]}`}
+                      </button>
+                    )}
                     {/* Create preview */}
                     {createPreview &&
                       createPreview.days.includes(dayOfWeek) && (
@@ -310,10 +323,18 @@ export function AvailabilityCalendarGrid({
                                 ? 0
                                 : undefined
                             }
+                            // An editable slot contains its own remove button,
+                            // so it is a group of controls, not a control —
+                            // nesting interactive elements confuses screen
+                            // readers and keyboard focus. In readOnly mode
+                            // there are no children to nest, so the more
+                            // descriptive button role applies.
                             role={
-                              !readOnly || handleSlotKeyboardActivate
-                                ? "button"
-                                : undefined
+                              readOnly
+                                ? handleSlotKeyboardActivate
+                                  ? "button"
+                                  : undefined
+                                : "group"
                             }
                             aria-label={
                               !readOnly || handleSlotKeyboardActivate

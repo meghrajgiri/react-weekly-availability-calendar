@@ -153,15 +153,16 @@ export function useAvailabilityCalendarKeyboard({
   );
 
   /**
-   * Handles Enter or Space on a focused day column: creates a slot at the
-   * earliest time that is free on that day.
+   * Adds a slot at the earliest free time on a day.
+   *
+   * Exposed as a plain action rather than a key handler because it is now
+   * driven by a real button. The column itself must not be interactive: it
+   * contains the slot buttons, and nesting interactive controls confuses
+   * screen readers and keyboard focus.
    */
-  const handleColumnKeyDown = useCallback(
-    (dayOfWeek: DayOfWeek, e: React.KeyboardEvent): boolean => {
-      if (readOnly) return false;
-      if (e.key !== "Enter" && e.key !== " ") return false;
-      // Only when the column itself is focused — never when a slot inside it is.
-      if (e.target !== e.currentTarget) return false;
+  const addSlotToDay = useCallback(
+    (dayOfWeek: DayOfWeek): void => {
+      if (readOnly) return;
 
       const occupied = [
         ...slots.filter((s) => s.dayOfWeek === dayOfWeek),
@@ -181,17 +182,16 @@ export function useAvailabilityCalendarKeyboard({
       const range = findFreeRange(duration, snapMinutes, bounds, occupied);
       if (!range) {
         setAnnouncement("No free time on that day");
-        return true;
+        return;
       }
 
       commit(
         [...slots, { id: newTempAvailabilitySlotId(), dayOfWeek, ...range }],
         `Slot added, ${range.startTime} to ${range.endTime}`
       );
-      return true;
     },
     [readOnly, slots, blockedSlots, snapMinutes, bounds, commit]
   );
 
-  return { handleSlotKeyDown, handleColumnKeyDown, announcement };
+  return { handleSlotKeyDown, addSlotToDay, announcement };
 }

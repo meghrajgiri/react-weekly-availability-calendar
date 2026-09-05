@@ -9,6 +9,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.4.1] - 2026-09-06
 
+### Fixed
+
+- Accessibility violations reported by axe, three of them introduced by the
+  keyboard support in 1.3.0.
+
+  - Day columns were focusable buttons that contained the slot buttons, and
+    slots were buttons containing their own remove button. Nesting interactive
+    controls confuses screen readers and keyboard focus. Columns are now
+    labelled groups, editable slots are groups of controls, and slot creation
+    moved to a real button — hidden until focused — that sits alongside the
+    slots rather than wrapping them.
+  - Day columns in `readOnly` mode carried an `aria-label` with no role, which
+    ARIA prohibits.
+  - The scrolling grid region was not reachable by keyboard, so content out of
+    view could not be scrolled to.
+  - Blocked-slot labels sit on a striped gradient, which made their contrast
+    ratio neither computable nor reliable. The text now has its own solid
+    backdrop.
+
+  axe now runs against the component in CI across five configurations, so these
+  cannot regress unnoticed.
+
 ### Changed
 
 - Gridlines are drawn once across the grid instead of being repeated inside
