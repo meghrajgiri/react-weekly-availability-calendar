@@ -17,7 +17,13 @@ export default defineConfig({
     __PKG_VERSION__: JSON.stringify(pkg.version),
   },
   build: {
-    outDir: fileURLToPath(new URL("../dist-site", import.meta.url)),
+    // Nested to match `base` above. Vite's `base` only rewrites the URLs in the
+    // emitted HTML; it does not nest the files. A static host serving
+    // dist-site as the web root would then 404 on /availability-calendar/,
+    // so the directory layout has to mirror the URL path.
+    outDir: fileURLToPath(
+      new URL("../dist-site/availability-calendar", import.meta.url)
+    ),
     emptyOutDir: true,
   },
 });
