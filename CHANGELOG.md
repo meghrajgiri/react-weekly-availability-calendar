@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.1] - 2026-09-06
+
+### Changed
+
+- Gridlines are drawn once across the grid instead of being repeated inside
+  every day column - 86 percent fewer nodes, from 1008 to 144 for a full day
+  at a ten-minute snap. The rules are horizontal and were identical in all
+  seven columns, so the repetition bought nothing.
+
+  Rendering is unchanged: the shared layer sits beneath the columns, so their
+  vertical borders still paint over it, and slots and blocked ranges still
+  paint above.
+
 ## [1.4.0] - 2026-09-06
 
 ### Added
@@ -206,7 +219,8 @@ No runtime changes — the published bundle is byte-identical to 1.2.0.
 
 - Initial public releases.
 
-[Unreleased]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.4.1...HEAD
+[1.4.1]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.2.2...v1.3.0
 [1.2.2]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.2.1...v1.2.2

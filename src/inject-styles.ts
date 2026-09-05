@@ -178,6 +178,9 @@ const CSS_TEXT = /* css */ `
   flex-direction: column;
   border-left: 1px solid var(--ac-border);
   min-width: 700px;
+  /* Holds the surface colour now that the day bodies are transparent, so the
+     gridline layer beneath them remains visible. */
+  background: var(--ac-card);
 }
 @media (min-width: 768px) {
   .ac-days-area {
@@ -196,6 +199,10 @@ const CSS_TEXT = /* css */ `
 .ac-days-grid {
   display: grid;
   width: 100%;
+  /* z-index establishes a stacking context so the gridline layer's negative
+     z-index stays inside it rather than slipping behind the surface. */
+  position: relative;
+  z-index: 0;
   grid-template-columns: repeat(7, 100px);
 }
 @media (min-width: 768px) {
@@ -235,7 +242,18 @@ const CSS_TEXT = /* css */ `
 .ac-day-body {
   position: relative;
   user-select: none;
-  background: var(--ac-card);
+  /* Transparent so the shared gridline layer shows through. */
+}
+
+/* One shared set of horizontal rules for the whole grid. Beneath the columns,
+   so their vertical borders paint over it exactly as before. */
+.ac-gridlines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: -1;
+  pointer-events: none;
 }
 .ac-day-body--crosshair {
   cursor: crosshair;

@@ -122,6 +122,26 @@ export function AvailabilityCalendarGrid({
               className="ac-days-grid"
               data-calendar-days-grid
             >
+              {/*
+                Gridlines are horizontal and identical in every column, so they
+                are drawn once across the whole grid rather than repeated per
+                column — 7x fewer nodes, and 1008 of them at a ten-minute snap.
+                Painted beneath the columns so their vertical borders still sit
+                on top, which keeps the rendering identical.
+              */}
+              <div
+                className="ac-gridlines"
+                aria-hidden
+                style={{ height: totalRows * ROW_HEIGHT_PX }}
+              >
+                {Array.from({ length: totalRows }).map((_, i) => (
+                  <div
+                    key={i}
+                    className={rowTopBorderClass(i)}
+                    style={{ top: i * ROW_HEIGHT_PX, height: 0 }}
+                  />
+                ))}
+              </div>
               {orderedDays.map((dayOfWeek: DayOfWeek, colIndex) => (
                 <div
                   key={dayOfWeek}
@@ -152,18 +172,6 @@ export function AvailabilityCalendarGrid({
                     style={{ height: totalRows * ROW_HEIGHT_PX }}
                     onPointerDown={(e) => handleGridPointerDown(dayOfWeek, e)}
                   >
-                    {/* Row gridlines */}
-                    {Array.from({ length: totalRows }).map((_, i) => (
-                      <div
-                        key={i}
-                        className={rowTopBorderClass(i)}
-                        style={{
-                          top: i * ROW_HEIGHT_PX,
-                          height: 0,
-                        }}
-                      />
-                    ))}
-
                     {/* Create preview */}
                     {createPreview &&
                       createPreview.days.includes(dayOfWeek) && (
