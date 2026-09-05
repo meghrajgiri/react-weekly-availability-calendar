@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { createRoot } from "react-dom/client";
-import { AvailabilityCalendar, darkTheme } from "../src";
+import {
+  AvailabilityCalendar,
+  darkTheme,
+  useAvailabilityHistory,
+} from "../src";
 import type { AvailabilitySlot, BlockedSlot } from "../src";
 
 const initialSlots: AvailabilitySlot[] = [
@@ -278,10 +282,62 @@ function MultiDayExample() {
   );
 }
 
+function UndoRedoExample() {
+  const {
+    slots,
+    onSlotsChange,
+    undo,
+    redo,
+    reset,
+    canUndo,
+    canRedo,
+    undoCount,
+  } = useAvailabilityHistory(initialSlots);
+
+  const btn = {
+    padding: "4px 10px",
+    marginRight: 8,
+    fontSize: 13,
+    cursor: "pointer",
+  } as const;
+
+  return (
+    <div>
+      <h2 style={{ margin: "0 0 0.75rem", fontSize: 18, fontWeight: 600 }}>
+        useAvailabilityHistory
+      </h2>
+      <div style={{ margin: "0 0 0.75rem" }}>
+        <button style={btn} onClick={undo} disabled={!canUndo}>
+          Undo
+        </button>
+        <button style={btn} onClick={redo} disabled={!canRedo}>
+          Redo
+        </button>
+        <button style={btn} onClick={() => reset(initialSlots)}>
+          Reset
+        </button>
+        <span style={{ color: "#6b7280", fontSize: 13 }}>
+          {undoCount} step{undoCount === 1 ? "" : "s"} in history
+        </span>
+      </div>
+      <div style={{ height: "60vh" }}>
+        <AvailabilityCalendar
+          slots={slots}
+          onSlotsChange={onSlotsChange}
+          blockedSlots={blockedSlots}
+          snapMinutes={30}
+          timeFormat="12"
+        />
+      </div>
+    </div>
+  );
+}
+
 function App() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "3rem" }}>
       <DefaultExample />
+      <UndoRedoExample />
       <MultiDayExample />
       <LocaleExample />
       <DarkThemeExample />

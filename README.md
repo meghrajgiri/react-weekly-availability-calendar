@@ -220,6 +220,53 @@ callback also fires in `readOnly` mode.
 />
 ```
 
+## Undo / redo
+
+`useAvailabilityHistory` wraps the controlled `slots` / `onSlotsChange` pair
+with an undo stack:
+
+```tsx
+import {
+  AvailabilityCalendar,
+  useAvailabilityHistory,
+} from "react-weekly-availability-calendar";
+
+function Editor() {
+  const { slots, onSlotsChange, undo, redo, canUndo, canRedo } =
+    useAvailabilityHistory(initialSlots);
+
+  return (
+    <>
+      <button onClick={undo} disabled={!canUndo}>
+        Undo
+      </button>
+      <button onClick={redo} disabled={!canRedo}>
+        Redo
+      </button>
+      <AvailabilityCalendar
+        slots={slots}
+        onSlotsChange={onSlotsChange}
+        snapMinutes={30}
+        timeFormat="12"
+      />
+    </>
+  );
+}
+```
+
+| Returns                   | Type                 | Description                             |
+| ------------------------- | -------------------- | --------------------------------------- |
+| `slots`                   | `AvailabilitySlot[]` | Pass to `slots`                         |
+| `onSlotsChange`           | `(next) => void`     | Pass to `onSlotsChange`                 |
+| `undo` / `redo`           | `() => void`         | No-ops when the matching stack is empty |
+| `reset`                   | `(slots) => void`    | Replace the slots and clear both stacks |
+| `canUndo` / `canRedo`     | `boolean`            | For disabling controls                  |
+| `undoCount` / `redoCount` | `number`             | Retained steps                          |
+
+A second argument caps the stack — `useAvailabilityHistory(initial, { limit: 100 })`.
+It defaults to 50, since a single drag emits many changes. Pass `Infinity` to
+keep everything.
+
 ## Types
 
 ```ts
