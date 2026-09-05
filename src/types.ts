@@ -120,6 +120,19 @@ export interface AvailabilityCalendarProps {
   /** Style for snap-increment grid lines (default: "dashed") */
   gridLineStyle?: "solid" | "dashed" | "dotted";
   /**
+   * First hour shown on the grid, 0-23 (default: 0).
+   *
+   * Narrowing the range only changes what is rendered and where slots may be
+   * dragged; slots outside it stay in your data untouched, and are clipped
+   * rather than moved.
+   */
+  startHour?: number;
+  /**
+   * Last hour shown on the grid, 1-24 and greater than `startHour`
+   * (default: 24). `24` means end of day.
+   */
+  endHour?: number;
+  /**
    * Allow a single drag-to-create gesture to span several day columns,
    * creating the same time range on each day it covers.
    *

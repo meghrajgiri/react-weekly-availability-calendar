@@ -1,6 +1,13 @@
 import { useCallback, useMemo } from "react";
 
-import { ROW_HEIGHT_PX, getDayLabel, getOrderedDays } from "./constants";
+import {
+  DEFAULT_END_HOUR,
+  DEFAULT_START_HOUR,
+  ROW_HEIGHT_PX,
+  getDayLabel,
+  getOrderedDays,
+  resolveHourRange,
+} from "./constants";
 import { getRowTopBorderClassName } from "./row-styles";
 import { daysBetween, formatClock, formatClockIntl } from "./utils";
 import { useAvailabilityCalendarPlacement } from "./use-placement";
@@ -33,20 +40,29 @@ export function useAvailabilityCalendar({
   dayLabelFormat = "short",
   gridLineStyle = "dashed",
   multiDayCreate = false,
+  startHour = DEFAULT_START_HOUR,
+  endHour = DEFAULT_END_HOUR,
   locale,
   classNames: userClassNames,
   renderSlot,
   renderBlockedSlot,
   onSlotClick,
 }: AvailabilityCalendarProps) {
+  const { startMinutes, endMinutes } = useMemo(
+    () => resolveHourRange(startHour, endHour),
+    [startHour, endHour]
+  );
+
   const { totalRows, rowToMinutes, minutesToPx, clientYToRow } =
-    useConsultationGrid(snapMinutes);
+    useConsultationGrid(snapMinutes, startMinutes, endMinutes);
 
   const orderedDays = useMemo(() => getOrderedDays(startDay), [startDay]);
 
   const { slotsRef, canPlaceRef } = useAvailabilityCalendarPlacement({
     slots,
     blockedSlots,
+    startMinutes,
+    endMinutes,
   });
 
   const {
@@ -61,6 +77,8 @@ export function useAvailabilityCalendar({
   } = useAvailabilityCalendarPointerHandlers({
     readOnly,
     multiDayCreate,
+    startMinutes,
+    endMinutes,
     snapMinutes,
     totalRows,
     orderedDays,
@@ -109,13 +127,15 @@ export function useAvailabilityCalendar({
         snapMinutes,
         gridLineStyle,
         userClassNames?.hourLine,
-        userClassNames?.subHourLine
+        userClassNames?.subHourLine,
+        startMinutes
       ),
     [
       snapMinutes,
       gridLineStyle,
       userClassNames?.hourLine,
       userClassNames?.subHourLine,
+      startMinutes,
     ]
   );
 
@@ -160,6 +180,8 @@ export function useAvailabilityCalendar({
     calendarScrollRef,
     daysGridRef,
     totalRows,
+    startMinutes,
+    endMinutes,
     rowToMinutes,
     minutesToPx,
     timeLabels,

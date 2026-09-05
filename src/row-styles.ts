@@ -15,9 +15,10 @@ export function getRowTopBorderClassName(
   snapMinutes: number,
   gridLineStyle: "solid" | "dashed" | "dotted" = "dashed",
   hourLineClassName?: string,
-  subHourLineClassName?: string
+  subHourLineClassName?: string,
+  gridStartMinutes: number = CONSULTATION_GRID_START_MINUTES
 ): string {
-  const mins = CONSULTATION_GRID_START_MINUTES + rowIndex * snapMinutes;
+  const mins = gridStartMinutes + rowIndex * snapMinutes;
   const isHourLine = mins % 60 === 0;
   return cn(
     "ac-row-border",

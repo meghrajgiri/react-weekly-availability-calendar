@@ -8,11 +8,7 @@ import type {
   ResizeDrag,
 } from "./types";
 
-import {
-  CONSULTATION_GRID_END_MINUTES,
-  CONSULTATION_GRID_START_MINUTES,
-  ROW_HEIGHT_PX,
-} from "./constants";
+import { ROW_HEIGHT_PX } from "./constants";
 import { useLatestRef } from "./use-latest-ref";
 import {
   dayIndexFromClientX,
@@ -31,6 +27,9 @@ const CLICK_MOVEMENT_THRESHOLD_PX = 4;
 interface UseAvailabilityCalendarPointerHandlersParams {
   readOnly: boolean;
   multiDayCreate: boolean;
+  /** Visible window, in minutes since midnight. */
+  startMinutes: number;
+  endMinutes: number;
   snapMinutes: 10 | 30 | 60;
   totalRows: number;
   orderedDays: DayOfWeek[];
@@ -59,6 +58,8 @@ interface UseAvailabilityCalendarPointerHandlersParams {
 export function useAvailabilityCalendarPointerHandlers({
   readOnly,
   multiDayCreate,
+  startMinutes,
+  endMinutes,
   snapMinutes,
   totalRows,
   orderedDays,
@@ -167,10 +168,7 @@ export function useAvailabilityCalendarPointerHandlers({
         const low = Math.min(startRow, row);
         const high = Math.max(startRow, row);
         const startM = rowToMinutes(low);
-        const endM = Math.min(
-          CONSULTATION_GRID_END_MINUTES,
-          rowToMinutes(high + 1)
-        );
+        const endM = Math.min(endMinutes, rowToMinutes(high + 1));
         if (endM > startM) {
           const grid = daysGridRef.current;
           const endDay =
@@ -216,6 +214,8 @@ export function useAvailabilityCalendarPointerHandlers({
     [
       readOnly,
       multiDayCreate,
+      startMinutes,
+      endMinutes,
       clientYToRow,
       rowToMinutes,
       onSlotsChange,
@@ -282,9 +282,13 @@ export function useAvailabilityCalendarPointerHandlers({
         let endM = hhmmToMinutes(current.endTime);
 
         if (edge === "start") {
-          let newStart = snapMinutesDown(rowToMinutes(row), snapMinutes);
+          let newStart = snapMinutesDown(
+            rowToMinutes(row),
+            snapMinutes,
+            startMinutes
+          );
           newStart = Math.max(
-            CONSULTATION_GRID_START_MINUTES,
+            startMinutes,
             Math.min(newStart, endM - snapMinutes)
           );
           if (!canPlaceRef.current(slot.dayOfWeek, newStart, endM, slot.id)) {
@@ -295,9 +299,9 @@ export function useAvailabilityCalendarPointerHandlers({
           // `rowToMinutes` already returns a multiple of `snapMinutes`, so no
           // further snapping is needed here.
           let newEnd = rowToMinutes(row + 1);
-          newEnd = Math.min(CONSULTATION_GRID_END_MINUTES, newEnd);
+          newEnd = Math.min(endMinutes, newEnd);
           newEnd = Math.max(newEnd, startM + snapMinutes);
-          newEnd = Math.min(CONSULTATION_GRID_END_MINUTES, newEnd);
+          newEnd = Math.min(endMinutes, newEnd);
           if (!canPlaceRef.current(slot.dayOfWeek, startM, newEnd, slot.id)) {
             return;
           }
@@ -345,6 +349,8 @@ export function useAvailabilityCalendarPointerHandlers({
     },
     [
       readOnly,
+      startMinutes,
+      endMinutes,
       clientYToRow,
       rowToMinutes,
       snapMinutes,
@@ -517,19 +523,18 @@ export function useAvailabilityCalendarPointerHandlers({
         let row = Math.floor((desiredSlotTop - bodyTop) / ROW_HEIGHT_PX);
         row = Math.max(0, Math.min(totalRows - 1, row));
 
-        const gridRange =
-          CONSULTATION_GRID_END_MINUTES - CONSULTATION_GRID_START_MINUTES;
+        const gridRange = endMinutes - startMinutes;
         const clampedDur = Math.min(dur, gridRange);
 
         let newStartM = rowToMinutes(row);
         let newEndM = newStartM + clampedDur;
 
-        if (newEndM > CONSULTATION_GRID_END_MINUTES) {
-          newEndM = CONSULTATION_GRID_END_MINUTES;
+        if (newEndM > endMinutes) {
+          newEndM = endMinutes;
           newStartM = newEndM - clampedDur;
         }
-        if (newStartM < CONSULTATION_GRID_START_MINUTES) {
-          newStartM = CONSULTATION_GRID_START_MINUTES;
+        if (newStartM < startMinutes) {
+          newStartM = startMinutes;
           newEndM = newStartM + clampedDur;
         }
 
@@ -595,6 +600,8 @@ export function useAvailabilityCalendarPointerHandlers({
     },
     [
       readOnly,
+      startMinutes,
+      endMinutes,
       onSlotsChange,
       rowToMinutes,
       totalRows,

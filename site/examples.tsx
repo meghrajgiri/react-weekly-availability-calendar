@@ -95,6 +95,22 @@ function Coloured({ dark }: { dark: boolean }) {
   );
 }
 
+function WorkingHours({ dark }: { dark: boolean }) {
+  const [slots, setSlots] = useState<AvailabilitySlot[]>(seedSlots);
+  return (
+    <AvailabilityCalendar
+      slots={slots}
+      onSlotsChange={setSlots}
+      blockedSlots={seedBlocked}
+      snapMinutes={30}
+      timeFormat="12"
+      startHour={8}
+      endHour={20}
+      theme={dark ? darkTheme : undefined}
+    />
+  );
+}
+
 function Localised({ dark }: { dark: boolean }) {
   const [slots, setSlots] = useState<AvailabilitySlot[]>(seedSlots);
   return (
@@ -263,6 +279,21 @@ export const examples: Example[] = [
   timeFormat="12"
 />`,
     render: body(Basic),
+  },
+  {
+    id: "hours",
+    title: "startHour / endHour",
+    blurb:
+      "Show only the hours you schedule in. Slots outside the range stay in your data — they are clipped, never moved.",
+    code: `<AvailabilityCalendar
+  slots={slots}
+  onSlotsChange={setSlots}
+  snapMinutes={30}
+  timeFormat="12"
+  startHour={8}
+  endHour={20}
+/>`,
+    render: body(WorkingHours),
   },
   {
     id: "colors",

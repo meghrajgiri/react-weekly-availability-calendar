@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-09-05
+
+### Added
+
+- `startHour` and `endHour` props to narrow the visible grid to the hours you
+  actually schedule in. The default is unchanged (the full day), so existing
+  usage is unaffected.
+
+  This is presentational only: slots outside the range stay in your data
+  untouched. They are clipped from the view rather than moved or rewritten, and
+  a slot straddling the boundary renders its visible portion while its labels
+  keep reporting its real start and end. Dragging is confined to the visible
+  window.
+
+  An invalid range — inverted, out of bounds, or not a number — falls back to
+  the full day and warns in development, rather than silently rendering an
+  empty grid.
+
 ## [1.1.0] - 2026-09-05
 
 ### Added
@@ -112,7 +130,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial public releases.
 
-[Unreleased]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.0.2...v1.1.0
 [1.0.2]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.0.0...v1.0.1

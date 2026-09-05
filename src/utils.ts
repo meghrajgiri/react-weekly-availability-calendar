@@ -109,10 +109,14 @@ export function minutesToHHmm(total: number): string {
  * @param m - Minutes since midnight.
  * @param snap - Snap increment in minutes (e.g. 10, 30, 60).
  */
-export function snapMinutesDown(m: number, snap: number): number {
-  const rel = m - CONSULTATION_GRID_START_MINUTES;
+export function snapMinutesDown(
+  m: number,
+  snap: number,
+  originMinutes: number = CONSULTATION_GRID_START_MINUTES
+): number {
+  const rel = m - originMinutes;
   const snapped = Math.floor(rel / snap) * snap;
-  return CONSULTATION_GRID_START_MINUTES + snapped;
+  return originMinutes + snapped;
 }
 
 /**
@@ -131,11 +135,10 @@ export function snapMinutesDown(m: number, snap: number): number {
 export function minutesToOffsetPx(
   minutes: number,
   snapMinutes: number,
-  rowHeightPx: number
+  rowHeightPx: number,
+  gridStartMinutes: number = CONSULTATION_GRID_START_MINUTES
 ): number {
-  return (
-    ((minutes - CONSULTATION_GRID_START_MINUTES) / snapMinutes) * rowHeightPx
-  );
+  return ((minutes - gridStartMinutes) / snapMinutes) * rowHeightPx;
 }
 
 /**

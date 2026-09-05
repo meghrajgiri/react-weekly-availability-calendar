@@ -72,6 +72,8 @@ function App() {
 | `startDay`          | `DayOfWeek` (0-6)                      | `0` (Sunday) | First day of the week                                                         |
 | `dayLabelFormat`    | `"short" \| "long" \| (day) => string` | `"short"`    | Day header labels                                                             |
 | `gridLineStyle`     | `"solid" \| "dashed" \| "dotted"`      | `"dashed"`   | Snap grid line style                                                          |
+| `startHour`         | `number`                               | `0`          | First hour shown on the grid (0-23)                                           |
+| `endHour`           | `number`                               | `24`         | Last hour shown on the grid (1-24, greater than `startHour`)                  |
 | `multiDayCreate`    | `boolean`                              | `false`      | Let one drag create the same range across several day columns                 |
 | `locale`            | `string`                               | —            | BCP 47 tag (e.g. `"de-DE"`) for day names and time labels                     |
 | `theme`             | `CalendarTheme`                        | —            | Color overrides. Pass the exported `darkTheme` preset for dark mode.          |
@@ -99,6 +101,29 @@ function App() {
   // ...
 />
 ```
+
+### Visible hour range
+
+By default the grid spans the full day. `startHour` and `endHour` narrow it to
+the hours you actually schedule in:
+
+```tsx
+<AvailabilityCalendar
+  startHour={8}
+  endHour={20}
+  snapMinutes={30}
+  timeFormat="12"
+  /* ... */
+/>
+```
+
+This is presentational only. Slots outside the range stay in your data
+untouched — they are clipped from the view, never moved or rewritten. A slot
+that straddles the boundary renders its visible portion while its labels keep
+reporting its real start and end. Dragging is confined to the visible window.
+
+An invalid range (inverted, out of bounds, or not a number) falls back to the
+full day and warns in development.
 
 ### Multi-day create
 

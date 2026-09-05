@@ -1,9 +1,5 @@
 import { useCallback } from "react";
 
-import {
-  CONSULTATION_GRID_END_MINUTES,
-  CONSULTATION_GRID_START_MINUTES,
-} from "./constants";
 import { hhmmToMinutes, overlaps } from "./utils";
 import { useLatestRef } from "./use-latest-ref";
 
@@ -20,7 +16,12 @@ const NO_BLOCKED_SLOTS: BlockedSlot[] = [];
 export function useAvailabilityCalendarPlacement({
   slots,
   blockedSlots = NO_BLOCKED_SLOTS,
-}: Pick<AvailabilityCalendarProps, "slots" | "blockedSlots">) {
+  startMinutes,
+  endMinutes,
+}: Pick<AvailabilityCalendarProps, "slots" | "blockedSlots"> & {
+  startMinutes: number;
+  endMinutes: number;
+}) {
   // Updated in an effect, not during render: the pointer handlers also write to
   // this ref mid-drag, so a render that React discards must not be able to
   // clobber it with slots that were never committed.
@@ -64,8 +65,9 @@ export function useAvailabilityCalendarPlacement({
       endM: number,
       excludeId?: number | string
     ): boolean => {
-      if (startM < CONSULTATION_GRID_START_MINUTES) return false;
-      if (endM > CONSULTATION_GRID_END_MINUTES) return false;
+      // Bounds are the *visible* window: a slot cannot be dragged outside it.
+      if (startM < startMinutes) return false;
+      if (endM > endMinutes) return false;
       if (endM <= startM) return false;
       const candidate = { start: startM, end: endM };
       for (const o of availabilityForDay(day, excludeId)) {
@@ -73,7 +75,7 @@ export function useAvailabilityCalendarPlacement({
       }
       return true;
     },
-    [availabilityForDay]
+    [availabilityForDay, startMinutes, endMinutes]
   );
 
   const canPlaceRef = useLatestRef(canPlace);
