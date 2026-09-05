@@ -251,10 +251,38 @@ function LocaleExample() {
   );
 }
 
+function MultiDayExample() {
+  const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
+
+  return (
+    <div>
+      <h2 style={{ margin: "0 0 0.75rem", fontSize: 18, fontWeight: 600 }}>
+        multiDayCreate
+      </h2>
+      <p style={{ margin: "0 0 0.75rem", color: "#6b7280", fontSize: 13 }}>
+        Drag diagonally across columns to create the same range on each day. Try
+        a drag that starts or ends on Sunday — the preview should cover every
+        column the commit will fill.
+      </p>
+      <div style={{ height: "60vh" }}>
+        <AvailabilityCalendar
+          slots={slots}
+          onSlotsChange={setSlots}
+          blockedSlots={blockedSlots}
+          snapMinutes={30}
+          timeFormat="12"
+          multiDayCreate
+        />
+      </div>
+    </div>
+  );
+}
+
 function App() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "3rem" }}>
       <DefaultExample />
+      <MultiDayExample />
       <LocaleExample />
       <DarkThemeExample />
       <OnSlotClickExample />

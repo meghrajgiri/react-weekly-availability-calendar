@@ -57,6 +57,7 @@ function App() {
 | `startDay`          | `DayOfWeek` (0-6)                      | `0` (Sunday) | First day of the week                                                         |
 | `dayLabelFormat`    | `"short" \| "long" \| (day) => string` | `"short"`    | Day header labels                                                             |
 | `gridLineStyle`     | `"solid" \| "dashed" \| "dotted"`      | `"dashed"`   | Snap grid line style                                                          |
+| `multiDayCreate`    | `boolean`                              | `false`      | Let one drag create the same range across several day columns                 |
 | `locale`            | `string`                               | —            | BCP 47 tag (e.g. `"de-DE"`) for day names and time labels                     |
 | `theme`             | `CalendarTheme`                        | —            | Color overrides. Pass the exported `darkTheme` preset for dark mode.          |
 | `classNames`        | `CalendarClassNames`                   | —            | CSS class overrides per part                                                  |
@@ -83,6 +84,20 @@ function App() {
   // ...
 />
 ```
+
+### Multi-day create
+
+With `multiDayCreate`, a single drag creates the same time range on every day
+column it covers:
+
+```tsx
+<AvailabilityCalendar multiDayCreate /* ... */ />
+```
+
+Opt-in by design. Horizontal movement during a create is otherwise ignored, so
+enabling this by default would make diagonal drags suddenly produce several
+slots. Days where the range would collide with an existing or blocked slot are
+skipped, so one busy column doesn't lose the whole sweep.
 
 ### Locale
 
