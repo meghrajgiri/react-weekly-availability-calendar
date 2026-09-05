@@ -27,10 +27,7 @@ export const DAY_LONG: Record<DayOfWeek, string> = {
  * @param startDay - The day to start the week on (0 = Sunday).
  */
 export function getOrderedDays(startDay: DayOfWeek): DayOfWeek[] {
-  return Array.from(
-    { length: 7 },
-    (_, i) => ((startDay + i) % 7) as DayOfWeek
-  );
+  return Array.from({ length: 7 }, (_, i) => ((startDay + i) % 7) as DayOfWeek);
 }
 
 /**

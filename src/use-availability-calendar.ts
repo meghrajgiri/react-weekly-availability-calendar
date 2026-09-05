@@ -93,7 +93,12 @@ export function useAvailabilityCalendar({
         userClassNames?.hourLine,
         userClassNames?.subHourLine
       ),
-    [snapMinutes, gridLineStyle, userClassNames?.hourLine, userClassNames?.subHourLine]
+    [
+      snapMinutes,
+      gridLineStyle,
+      userClassNames?.hourLine,
+      userClassNames?.subHourLine,
+    ]
   );
 
   const createPreview =

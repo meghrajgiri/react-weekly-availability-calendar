@@ -1,9 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type {
   AvailabilitySlot,
@@ -207,11 +202,7 @@ export function useAvailabilityCalendarPointerHandlers({
   );
 
   const handleResizePointerDown = useCallback(
-    (
-      slot: AvailabilitySlot,
-      edge: "start" | "end",
-      e: React.PointerEvent
-    ) => {
+    (slot: AvailabilitySlot, edge: "start" | "end", e: React.PointerEvent) => {
       if (readOnly) return;
       if (e.pointerType === "mouse" && e.button !== 0) return;
       e.stopPropagation();
@@ -283,15 +274,17 @@ export function useAvailabilityCalendarPointerHandlers({
           endM = newEnd;
         }
 
-        const next = mergeAdjacentSlots(prev.map((s) =>
-          s.id === slot.id
-            ? {
-                ...s,
-                startTime: minutesToHHmm(startM),
-                endTime: minutesToHHmm(endM),
-              }
-            : s
-        ));
+        const next = mergeAdjacentSlots(
+          prev.map((s) =>
+            s.id === slot.id
+              ? {
+                  ...s,
+                  startTime: minutesToHHmm(startM),
+                  endTime: minutesToHHmm(endM),
+                }
+              : s
+          )
+        );
         slotsRef.current = next;
         onSlotsChange(next);
       };
@@ -325,10 +318,7 @@ export function useAvailabilityCalendarPointerHandlers({
   );
 
   const handleSlotMovePointerDown = useCallback(
-    (
-      slot: AvailabilitySlot,
-      e: React.PointerEvent<HTMLDivElement>
-    ) => {
+    (slot: AvailabilitySlot, e: React.PointerEvent<HTMLDivElement>) => {
       if (e.pointerType === "mouse" && e.button !== 0) return;
 
       if (readOnly) {
@@ -500,16 +490,18 @@ export function useAvailabilityCalendarPointerHandlers({
         }
 
         const prev = slotsRef.current;
-        const next = mergeAdjacentSlots(prev.map((s) =>
-          s.id === slot.id
-            ? {
-                ...s,
-                dayOfWeek: newDay,
-                startTime: minutesToHHmm(newStartM),
-                endTime: minutesToHHmm(newEndM),
-              }
-            : s
-        ));
+        const next = mergeAdjacentSlots(
+          prev.map((s) =>
+            s.id === slot.id
+              ? {
+                  ...s,
+                  dayOfWeek: newDay,
+                  startTime: minutesToHHmm(newStartM),
+                  endTime: minutesToHHmm(newEndM),
+                }
+              : s
+          )
+        );
         slotsRef.current = next;
         onSlotsChange(next);
       };
