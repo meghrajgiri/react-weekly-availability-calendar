@@ -1,14 +1,7 @@
 import { XIcon } from "./icons";
 import { cn } from "./cn";
-import {
-  CALENDAR_HEADER_ROW_PX,
-  ROW_HEIGHT_PX,
-} from "./constants";
-import {
-  formatClock,
-  formatDurationLabel,
-  hhmmToMinutes,
-} from "./utils";
+import { CALENDAR_HEADER_ROW_PX, ROW_HEIGHT_PX } from "./constants";
+import { formatClock, formatDurationLabel, hhmmToMinutes } from "./utils";
 
 import type { DayOfWeek } from "./types";
 import type { AvailabilityCalendarModel } from "./use-availability-calendar";
@@ -104,9 +97,16 @@ export function AvailabilityCalendarGrid({
             </div>
 
             {/* Body grid */}
-            <div ref={daysGridRef} className="ac-days-grid" data-calendar-days-grid>
+            <div
+              ref={daysGridRef}
+              className="ac-days-grid"
+              data-calendar-days-grid
+            >
               {orderedDays.map((dayOfWeek: DayOfWeek, colIndex) => (
-                <div key={dayOfWeek} className={cn("ac-day-column", cx?.dayColumn)}>
+                <div
+                  key={dayOfWeek}
+                  className={cn("ac-day-column", cx?.dayColumn)}
+                >
                   <div
                     data-day-column-body
                     aria-label={dayLabels[colIndex]}
@@ -134,16 +134,15 @@ export function AvailabilityCalendarGrid({
                     ))}
 
                     {/* Create preview */}
-                    {createPreview &&
-                      createPreview.dayOfWeek === dayOfWeek && (
-                        <div
-                          className={cn("ac-create-preview", cx?.createPreview)}
-                          style={{
-                            top: createPreview.top,
-                            height: createPreview.height,
-                          }}
-                        />
-                      )}
+                    {createPreview && createPreview.dayOfWeek === dayOfWeek && (
+                      <div
+                        className={cn("ac-create-preview", cx?.createPreview)}
+                        style={{
+                          top: createPreview.top,
+                          height: createPreview.height,
+                        }}
+                      />
+                    )}
 
                     {/* Blocked slots */}
                     {blockedSlots
@@ -251,8 +250,12 @@ export function AvailabilityCalendarGrid({
                           <div
                             key={String(s.id)}
                             data-availability-block
-                            tabIndex={handleSlotKeyboardActivate ? 0 : undefined}
-                            role={handleSlotKeyboardActivate ? "button" : undefined}
+                            tabIndex={
+                              handleSlotKeyboardActivate ? 0 : undefined
+                            }
+                            role={
+                              handleSlotKeyboardActivate ? "button" : undefined
+                            }
                             aria-label={
                               handleSlotKeyboardActivate
                                 ? `Slot ${startLbl} to ${endLbl} on ${dayLabels[colIndex]}`
@@ -290,9 +293,7 @@ export function AvailabilityCalendarGrid({
                                     cx?.slotRemoveButton
                                   )}
                                   aria-label="Remove slot"
-                                  onPointerDown={(ev) =>
-                                    ev.stopPropagation()
-                                  }
+                                  onPointerDown={(ev) => ev.stopPropagation()}
                                   onClick={() => removeSlot(s.id)}
                                 >
                                   <XIcon />

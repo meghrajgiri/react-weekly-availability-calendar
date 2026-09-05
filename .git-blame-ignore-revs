@@ -1,0 +1,6 @@
+# Formatting-only commits, skipped by `git blame`.
+# Enable locally with:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# style: format existing sources with prettier
+8d2de8c166c482be44981329812445ad6571b681

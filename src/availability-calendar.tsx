@@ -31,8 +31,7 @@ function themeToVars(theme: CalendarTheme | undefined): CSSProperties {
 
   if (theme.blockedBackground)
     vars["--ac-blocked-bg"] = theme.blockedBackground;
-  if (theme.blockedTextColor)
-    vars["--ac-blocked-fg"] = theme.blockedTextColor;
+  if (theme.blockedTextColor) vars["--ac-blocked-fg"] = theme.blockedTextColor;
   if (theme.blockedBorderColor)
     vars["--ac-blocked-border"] = theme.blockedBorderColor;
   if (theme.blockedStripeColor)
@@ -59,7 +58,10 @@ export function AvailabilityCalendar({
   ...props
 }: AvailabilityCalendarProps) {
   injectStyles();
-  const model = useAvailabilityCalendar({ ...props, classNames: userClassNames });
+  const model = useAvailabilityCalendar({
+    ...props,
+    classNames: userClassNames,
+  });
 
   return (
     <div

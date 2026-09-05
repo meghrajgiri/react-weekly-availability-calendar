@@ -3,11 +3,12 @@ name: CI
 on:
   push:
     branches: [main]
+  # No base-branch filter: stacked pull requests target another feature branch
+  # rather than main, and would otherwise get no CI at all.
   pull_request:
-    branches: [main]
 
 jobs:
-  build:
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -18,4 +19,18 @@ jobs:
           cache: npm
 
       - run: npm ci
-      - run: npm run build
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build

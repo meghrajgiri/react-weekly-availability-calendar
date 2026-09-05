@@ -1,5 +1,8 @@
 import type { AvailabilitySlot, DayOfWeek } from "./types";
-import { CONSULTATION_GRID_START_MINUTES } from "./constants";
+import {
+  CONSULTATION_GRID_END_MINUTES,
+  CONSULTATION_GRID_START_MINUTES,
+} from "./constants";
 
 /** Generates a unique temporary ID for a newly created availability slot. */
 export function newTempAvailabilitySlotId(): string {
@@ -67,11 +70,26 @@ export function clampGhostToGridArea(
 
 /**
  * Converts a time string in "HH:mm" format to total minutes since midnight.
+ *
+ * Malformed input yields `0` rather than `NaN`, and the result is clamped to
+ * the grid range, so a bad value from a consumer can never propagate into
+ * layout math as `NaN` or an out-of-range pixel offset.
+ *
  * @param hhmm - Time string, e.g. "09:30".
  */
 export function hhmmToMinutes(hhmm: string): number {
-  const [h = 0, m = 0] = hhmm.trim().slice(0, 5).split(":").map(Number);
-  return h * 60 + m;
+  const [rawH, rawM] = hhmm.trim().slice(0, 5).split(":");
+  // Destructuring defaults only fire on `undefined`, so parse defensively:
+  // Number("abc") is NaN, which would otherwise flow straight into CSS.
+  const h = Number(rawH);
+  const m = Number(rawM);
+  const total =
+    (Number.isFinite(h) ? h : 0) * 60 + (Number.isFinite(m) ? m : 0);
+  if (!Number.isFinite(total)) return 0;
+  return Math.max(
+    CONSULTATION_GRID_START_MINUTES,
+    Math.min(CONSULTATION_GRID_END_MINUTES, total)
+  );
 }
 
 /**
@@ -154,7 +172,9 @@ export function overlaps(
  * Merges slots on the same day that touch or overlap into single slots.
  * Keeps the id of the earliest slot in each merged group.
  */
-export function mergeAdjacentSlots(slots: AvailabilitySlot[]): AvailabilitySlot[] {
+export function mergeAdjacentSlots(
+  slots: AvailabilitySlot[]
+): AvailabilitySlot[] {
   const byDay = new Map<DayOfWeek, AvailabilitySlot[]>();
   for (const s of slots) {
     let list = byDay.get(s.dayOfWeek);
@@ -167,7 +187,9 @@ export function mergeAdjacentSlots(slots: AvailabilitySlot[]): AvailabilitySlot[
 
   const result: AvailabilitySlot[] = [];
   for (const daySlots of byDay.values()) {
-    daySlots.sort((a, b) => hhmmToMinutes(a.startTime) - hhmmToMinutes(b.startTime));
+    daySlots.sort(
+      (a, b) => hhmmToMinutes(a.startTime) - hhmmToMinutes(b.startTime)
+    );
     let current = daySlots[0];
     let curStart = hhmmToMinutes(current.startTime);
     let curEnd = hhmmToMinutes(current.endTime);
