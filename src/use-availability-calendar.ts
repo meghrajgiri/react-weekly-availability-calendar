@@ -7,7 +7,14 @@ import { useAvailabilityCalendarPlacement } from "./use-placement";
 import { useAvailabilityCalendarPointerHandlers } from "./use-pointer-handlers";
 import { useConsultationGrid } from "./use-grid";
 
-import type { AvailabilityCalendarProps } from "./types";
+import type { AvailabilityCalendarProps, BlockedSlot } from "./types";
+
+/**
+ * Stable identity for the default `blockedSlots`. A `= []` default parameter
+ * allocates a fresh array on every render, which invalidates every downstream
+ * `useCallback`/`useMemo` that depends on it.
+ */
+const NO_BLOCKED_SLOTS: BlockedSlot[] = [];
 
 /**
  * Core orchestration hook for the availability calendar.
@@ -18,7 +25,7 @@ import type { AvailabilityCalendarProps } from "./types";
 export function useAvailabilityCalendar({
   slots,
   onSlotsChange,
-  blockedSlots = [],
+  blockedSlots = NO_BLOCKED_SLOTS,
   snapMinutes,
   timeFormat,
   readOnly = false,
