@@ -44,7 +44,10 @@
     "validate": "npm run typecheck && npm run lint && npm run format:check && npm run test",
     "prepublishOnly": "npm run build",
     "site:build": "vite build site",
-    "site:preview": "vite preview site"
+    "site:preview": "vite preview site",
+    "storybook": "storybook dev -p 6006",
+    "storybook:build": "storybook build -o dist-site/availability-calendar/storybook",
+    "docs:build": "npm run site:build && npm run storybook:build"
   },
   "peerDependencies": {
     "react": ">=18.0.0",
@@ -52,6 +55,9 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@storybook/addon-a11y": "^10.6.0",
+    "@storybook/addon-docs": "^10.6.0",
+    "@storybook/react-vite": "^10.6.0",
     "@types/node": "^26.4.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
@@ -61,6 +67,7 @@
     "prettier": "^3.9.6",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "storybook": "^10.6.0",
     "tsup": "^8.0.0",
     "typescript": "^5.0.0",
     "typescript-eslint": "^8.69.0",
