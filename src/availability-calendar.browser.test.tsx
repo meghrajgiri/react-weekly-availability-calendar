@@ -631,3 +631,83 @@ describe("keyboard operation", () => {
     });
   });
 });
+
+describe("gridline rendering", () => {
+  it("draws one shared set of rules, not one per column", async () => {
+    render(<Harness />);
+    const cols = await readyColumns();
+
+    // 09:00-17:00 at a 60-minute snap is 8 rows.
+    const lines = document.querySelectorAll(".ac-gridlines .ac-row-border");
+    expect(lines).toHaveLength(8);
+
+    // The old layout repeated them inside every column.
+    for (const col of cols) {
+      expect(col.querySelectorAll(".ac-row-border")).toHaveLength(0);
+    }
+  });
+
+  it("scales with the snap increment rather than with columns", async () => {
+    render(<Harness snapMinutes={10} startHour={9} endHour={17} />);
+    await readyColumns();
+    // 8 hours at ten minutes = 48 rows. Previously this was 48 x 7 = 336 nodes.
+    expect(
+      document.querySelectorAll(".ac-gridlines .ac-row-border")
+    ).toHaveLength(48);
+  });
+
+  it("puts every rule at its row boundary, spanning the full grid", async () => {
+    render(<Harness />);
+    const cols = await readyColumns();
+    const grid = document.querySelector("[data-calendar-days-grid]")!;
+    const gridRect = grid.getBoundingClientRect();
+    const firstCol = cols[0].getBoundingClientRect();
+
+    const lines = Array.from(
+      document.querySelectorAll<HTMLElement>(".ac-gridlines .ac-row-border")
+    );
+
+    lines.forEach((line, i) => {
+      const r = line.getBoundingClientRect();
+      // Same vertical position the per-column lines occupied.
+      expect(Math.round(r.top - firstCol.top)).toBe(i * ROW_HEIGHT_PX);
+      // And now spanning the whole grid rather than a single column.
+      expect(Math.round(r.width)).toBe(Math.round(gridRect.width));
+    });
+  });
+
+  it("still distinguishes hour rules from sub-hour ones", async () => {
+    render(<Harness snapMinutes={30} startHour={9} endHour={12} />);
+    await readyColumns();
+    const lines = document.querySelectorAll(".ac-gridlines .ac-row-border");
+    // 6 rows; the ones on the hour get the hour modifier, the rest do not.
+    expect(lines).toHaveLength(6);
+    expect(
+      document.querySelectorAll(".ac-gridlines .ac-row-border--hour")
+    ).toHaveLength(2); // rows 2 and 4 (10:00, 11:00); row 0 has no top rule
+    expect(
+      document.querySelectorAll(".ac-gridlines .ac-row-border--sub")
+    ).toHaveLength(3);
+  });
+
+  it("keeps slots painted above the rules", async () => {
+    render(
+      <Harness
+        initial={[
+          { id: "a", dayOfWeek: 1, startTime: "10:00", endTime: "11:00" },
+        ]}
+      />
+    );
+    await readyColumns();
+    const slot = document.querySelector<HTMLElement>(
+      "[data-availability-block]"
+    )!;
+    const r = slot.getBoundingClientRect();
+    // The slot, not a gridline, is what the pointer finds at its centre.
+    const hit = document.elementFromPoint(
+      r.left + r.width / 2,
+      r.top + r.height / 2
+    );
+    expect(slot.contains(hit)).toBe(true);
+  });
+});
