@@ -5,6 +5,7 @@ import {
   CONSULTATION_GRID_START_MINUTES,
   ROW_HEIGHT_PX,
 } from "./constants";
+import { minutesToOffsetPx } from "./utils";
 
 /**
  * Hook that computes grid layout math based on the snap increment.
@@ -27,10 +28,13 @@ export function useConsultationGrid(snapMinutes: 10 | 30 | 60) {
     [snapMinutes]
   );
 
-  /** Converts minutes since midnight to the nearest row index. */
-  const minutesToRowIndex = useCallback(
-    (minutes: number) =>
-      Math.round((minutes - CONSULTATION_GRID_START_MINUTES) / snapMinutes),
+  /**
+   * Converts minutes since midnight to a pixel offset from the top of the grid.
+   * Proportional, so slots that do not align to `snapMinutes` still render at
+   * their true position and height.
+   */
+  const minutesToPx = useCallback(
+    (minutes: number) => minutesToOffsetPx(minutes, snapMinutes, ROW_HEIGHT_PX),
     [snapMinutes]
   );
 
@@ -48,7 +52,7 @@ export function useConsultationGrid(snapMinutes: 10 | 30 | 60) {
   return {
     totalRows,
     rowToMinutes,
-    minutesToRowIndex,
+    minutesToPx,
     clientYToRow,
   };
 }

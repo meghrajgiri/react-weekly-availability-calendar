@@ -23,7 +23,7 @@ export function AvailabilityCalendarGrid({
     timeLabels,
     createPreview,
     blockedSlots,
-    minutesToRowIndex,
+    minutesToPx,
     slots,
     timeFormat,
     orderedDays,
@@ -150,10 +150,8 @@ export function AvailabilityCalendarGrid({
                       .map((b, blockedIndex) => {
                         const sm = hhmmToMinutes(b.startTime);
                         const em = hhmmToMinutes(b.endTime);
-                        const top = minutesToRowIndex(sm) * ROW_HEIGHT_PX;
-                        const h =
-                          (minutesToRowIndex(em) - minutesToRowIndex(sm)) *
-                          ROW_HEIGHT_PX;
+                        const top = minutesToPx(sm);
+                        const h = minutesToPx(em) - minutesToPx(sm);
                         if (h <= 0) return null;
 
                         const defaultContent = (
@@ -191,10 +189,8 @@ export function AvailabilityCalendarGrid({
                       .map((s) => {
                         const sm = hhmmToMinutes(s.startTime);
                         const em = hhmmToMinutes(s.endTime);
-                        const top = minutesToRowIndex(sm) * ROW_HEIGHT_PX;
-                        const h =
-                          (minutesToRowIndex(em) - minutesToRowIndex(sm)) *
-                          ROW_HEIGHT_PX;
+                        const top = minutesToPx(sm);
+                        const h = minutesToPx(em) - minutesToPx(sm);
                         const dur = em - sm;
                         const startLbl = formatClock(sm, timeFormat).primary;
                         const endLbl = formatClock(em, timeFormat).primary;

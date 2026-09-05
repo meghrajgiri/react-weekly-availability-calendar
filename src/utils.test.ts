@@ -8,6 +8,7 @@ import {
   hhmmToMinutes,
   mergeAdjacentSlots,
   minutesToHHmm,
+  minutesToOffsetPx,
   newTempAvailabilitySlotId,
   overlaps,
   snapMinutesDown,
@@ -220,6 +221,56 @@ describe("mergeAdjacentSlots", () => {
     ];
     const merged = mergeAdjacentSlots(input);
     expect(merged[0]).toMatchObject({ id: 1, note: "keep" });
+  });
+});
+
+describe("minutesToOffsetPx", () => {
+  const ROW = 24;
+
+  it("maps aligned times to exact row boundaries", () => {
+    expect(minutesToOffsetPx(0, 30, ROW)).toBe(0);
+    expect(minutesToOffsetPx(30, 30, ROW)).toBe(24);
+    expect(minutesToOffsetPx(540, 30, ROW)).toBe(432); // 09:00 -> row 18
+    expect(minutesToOffsetPx(1440, 30, ROW)).toBe(1152); // end of grid
+  });
+
+  it("positions non-aligned times proportionally (bug #6)", () => {
+    // 09:15 with a 30-minute snap. The old Math.round row math put this at
+    // row 19 (456px) — a 12px, i.e. 15-minute, error.
+    expect(minutesToOffsetPx(555, 30, ROW)).toBe(444);
+    // 09:10 landed on row 18 (432px) instead of 440px.
+    expect(minutesToOffsetPx(550, 30, ROW)).toBe(440);
+  });
+
+  it("gives non-aligned slots their true height (bug #6)", () => {
+    // 09:10-09:50 is 40 minutes. Rounded rows gave (20-18)*24 = 48px,
+    // half again too tall; the true height is 32px.
+    const h = minutesToOffsetPx(590, 30, ROW) - minutesToOffsetPx(550, 30, ROW);
+    expect(h).toBe(32);
+  });
+
+  it("keeps height proportional to duration regardless of start offset", () => {
+    for (const start of [0, 7, 15, 23, 600, 1000]) {
+      const h =
+        minutesToOffsetPx(start + 45, 30, ROW) -
+        minutesToOffsetPx(start, 30, ROW);
+      expect(h).toBeCloseTo(36, 10);
+    }
+  });
+
+  it("scales with the snap increment", () => {
+    expect(minutesToOffsetPx(60, 60, ROW)).toBe(24);
+    expect(minutesToOffsetPx(60, 30, ROW)).toBe(48);
+    expect(minutesToOffsetPx(60, 10, ROW)).toBe(144);
+  });
+
+  it("is monotonic", () => {
+    let prev = -Infinity;
+    for (let m = 0; m <= 1440; m += 7) {
+      const px = minutesToOffsetPx(m, 30, ROW);
+      expect(px).toBeGreaterThan(prev);
+      prev = px;
+    }
   });
 });
 
