@@ -6,7 +6,17 @@ import { formatClock, formatDurationLabel, hhmmToMinutes } from "./utils";
 import type { DayOfWeek } from "./types";
 import type { AvailabilityCalendarModel } from "./use-availability-calendar";
 
-/** Renders the calendar grid: time column, day headers, slots, blocked slots, and gridlines. */
+/**
+ * Renders the calendar grid: time column, day headers, slots, blocked slots,
+ * and gridlines.
+ *
+ * Accessibility note: the root is a labelled `group`, not a `grid`. The ARIA
+ * grid role requires `row`/`gridcell` descendants and two-dimensional
+ * arrow-key navigation; announcing a grid while offering nothing navigable is
+ * worse for screen-reader users than announcing a plain labelled group. Slots
+ * expose `role="button"` individually when `onSlotClick` makes them
+ * activatable. Full grid semantics arrive with keyboard navigation.
+ */
 export function AvailabilityCalendarGrid({
   model,
 }: {
@@ -23,7 +33,7 @@ export function AvailabilityCalendarGrid({
     timeLabels,
     createPreview,
     blockedSlots,
-    minutesToRowIndex,
+    minutesToPx,
     slots,
     timeFormat,
     orderedDays,
@@ -41,7 +51,9 @@ export function AvailabilityCalendarGrid({
   return (
     <div
       ref={calendarContainerRef}
-      role="grid"
+      // Not role="grid": that requires row/gridcell descendants and arrow-key
+      // navigation, which land with keyboard support. See the note above.
+      role="group"
       aria-label="Weekly availability calendar"
       className={cn(
         "ac-grid-container",
@@ -150,10 +162,8 @@ export function AvailabilityCalendarGrid({
                       .map((b, blockedIndex) => {
                         const sm = hhmmToMinutes(b.startTime);
                         const em = hhmmToMinutes(b.endTime);
-                        const top = minutesToRowIndex(sm) * ROW_HEIGHT_PX;
-                        const h =
-                          (minutesToRowIndex(em) - minutesToRowIndex(sm)) *
-                          ROW_HEIGHT_PX;
+                        const top = minutesToPx(sm);
+                        const h = minutesToPx(em) - minutesToPx(sm);
                         if (h <= 0) return null;
 
                         const defaultContent = (
@@ -191,10 +201,8 @@ export function AvailabilityCalendarGrid({
                       .map((s) => {
                         const sm = hhmmToMinutes(s.startTime);
                         const em = hhmmToMinutes(s.endTime);
-                        const top = minutesToRowIndex(sm) * ROW_HEIGHT_PX;
-                        const h =
-                          (minutesToRowIndex(em) - minutesToRowIndex(sm)) *
-                          ROW_HEIGHT_PX;
+                        const top = minutesToPx(sm);
+                        const h = minutesToPx(em) - minutesToPx(sm);
                         const dur = em - sm;
                         const startLbl = formatClock(sm, timeFormat).primary;
                         const endLbl = formatClock(em, timeFormat).primary;
@@ -300,8 +308,8 @@ export function AvailabilityCalendarGrid({
                                 </button>
                                 <div
                                   data-slot-resize="start"
-                                  role="separator"
-                                  aria-label="Resize slot start"
+                                  // Pointer-only until keyboard resize exists.
+                                  aria-hidden
                                   className="ac-slot-resize ac-slot-resize--start"
                                   onPointerDown={(ev) =>
                                     handleResizePointerDown(s, "start", ev)
@@ -309,8 +317,7 @@ export function AvailabilityCalendarGrid({
                                 />
                                 <div
                                   data-slot-resize="end"
-                                  role="separator"
-                                  aria-label="Resize slot end"
+                                  aria-hidden
                                   className="ac-slot-resize ac-slot-resize--end"
                                   onPointerDown={(ev) =>
                                     handleResizePointerDown(s, "end", ev)

@@ -1,10 +1,11 @@
-import { useCallback, useRef } from "react";
+import { useCallback } from "react";
 
 import {
   CONSULTATION_GRID_END_MINUTES,
   CONSULTATION_GRID_START_MINUTES,
 } from "./constants";
 import { hhmmToMinutes, overlaps } from "./utils";
+import { useLatestRef } from "./use-latest-ref";
 
 import type { AvailabilityCalendarProps, BlockedSlot } from "./types";
 
@@ -20,8 +21,10 @@ export function useAvailabilityCalendarPlacement({
   slots,
   blockedSlots = NO_BLOCKED_SLOTS,
 }: Pick<AvailabilityCalendarProps, "slots" | "blockedSlots">) {
-  const slotsRef = useRef(slots);
-  slotsRef.current = slots;
+  // Updated in an effect, not during render: the pointer handlers also write to
+  // this ref mid-drag, so a render that React discards must not be able to
+  // clobber it with slots that were never committed.
+  const slotsRef = useLatestRef(slots);
 
   /**
    * Returns all occupied time ranges for a given day,
@@ -47,7 +50,7 @@ export function useAvailabilityCalendarPlacement({
       }
       return list;
     },
-    [blockedSlots]
+    [blockedSlots, slotsRef]
   );
 
   /**
@@ -73,8 +76,7 @@ export function useAvailabilityCalendarPlacement({
     [availabilityForDay]
   );
 
-  const canPlaceRef = useRef(canPlace);
-  canPlaceRef.current = canPlace;
+  const canPlaceRef = useLatestRef(canPlace);
 
   return {
     slotsRef,

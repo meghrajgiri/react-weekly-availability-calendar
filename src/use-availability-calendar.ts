@@ -37,7 +37,7 @@ export function useAvailabilityCalendar({
   renderBlockedSlot,
   onSlotClick,
 }: AvailabilityCalendarProps) {
-  const { totalRows, rowToMinutes, minutesToRowIndex, clientYToRow } =
+  const { totalRows, rowToMinutes, minutesToPx, clientYToRow } =
     useConsultationGrid(snapMinutes);
 
   const orderedDays = useMemo(() => getOrderedDays(startDay), [startDay]);
@@ -143,7 +143,7 @@ export function useAvailabilityCalendar({
     daysGridRef,
     totalRows,
     rowToMinutes,
-    minutesToRowIndex,
+    minutesToPx,
     timeLabels,
     rowTopBorderClass,
     createPreview,

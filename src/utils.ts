@@ -116,6 +116,29 @@ export function snapMinutesDown(m: number, snap: number): number {
 }
 
 /**
+ * Converts minutes since midnight into a vertical pixel offset from the top of
+ * the grid.
+ *
+ * Deliberately proportional rather than snapped to a row index: slots supplied
+ * by a consumer need not align to `snapMinutes` (a 09:15 start with a 30-minute
+ * snap is perfectly ordinary), and rounding to the nearest row would render
+ * them at the wrong time and the wrong height.
+ *
+ * @param minutes - Minutes since midnight.
+ * @param snapMinutes - Snap increment, i.e. the number of minutes one row spans.
+ * @param rowHeightPx - Height of a single row in pixels.
+ */
+export function minutesToOffsetPx(
+  minutes: number,
+  snapMinutes: number,
+  rowHeightPx: number
+): number {
+  return (
+    ((minutes - CONSULTATION_GRID_START_MINUTES) / snapMinutes) * rowHeightPx
+  );
+}
+
+/**
  * Formats minutes since midnight into a display string.
  * Note: 1440 (24*60) is rendered as "24:00" in 24h format to represent
  * end-of-day, since slots can span until midnight.

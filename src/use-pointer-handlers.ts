@@ -13,6 +13,7 @@ import {
   CONSULTATION_GRID_START_MINUTES,
   ROW_HEIGHT_PX,
 } from "./constants";
+import { useLatestRef } from "./use-latest-ref";
 import {
   dayIndexFromClientX,
   hhmmToMinutes,
@@ -83,8 +84,7 @@ export function useAvailabilityCalendarPointerHandlers({
 
   // Keep the latest callback in a ref so we don't need to re-bind pointer
   // handlers every time the consumer passes a new `onSlotClick` identity.
-  const onSlotClickRef = useRef(onSlotClick);
-  onSlotClickRef.current = onSlotClick;
+  const onSlotClickRef = useLatestRef(onSlotClick);
 
   const lockCalendarTouchScroll = useCallback(() => {
     calendarScrollRef.current?.style.setProperty("touch-action", "none");
@@ -576,6 +576,7 @@ export function useAvailabilityCalendarPointerHandlers({
       unlockCalendarTouchScroll,
       canPlaceRef,
       slotsRef,
+      onSlotClickRef,
     ]
   );
 
