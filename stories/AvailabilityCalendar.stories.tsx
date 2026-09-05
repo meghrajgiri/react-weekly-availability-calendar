@@ -176,3 +176,14 @@ export const ClassNames: Story = {
     },
   },
 };
+
+/**
+ * Fully operable without a pointer.
+ *
+ * Tab to a day column and press Enter to add a slot. Tab to a slot, then use
+ * arrows to move it, Shift with arrows to resize, and Delete to remove it.
+ * Each change is announced in a live region.
+ */
+export const KeyboardOperation: Story = {
+  args: { slots, startHour: 9, endHour: 17 },
+};

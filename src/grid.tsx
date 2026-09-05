@@ -47,6 +47,9 @@ export function AvailabilityCalendarGrid({
     handleGridPointerDown,
     handleResizePointerDown,
     handleSlotMovePointerDown,
+    handleSlotKeyDown,
+    handleColumnKeyDown,
+    announcement,
     removeSlot,
   } = model;
 
@@ -63,6 +66,9 @@ export function AvailabilityCalendarGrid({
         cx?.gridContainer
       )}
     >
+      <div className="ac-sr-only" role="status" aria-live="polite">
+        {announcement}
+      </div>
       <div ref={calendarScrollRef} className="ac-grid-scroll">
         <div className="ac-grid-inner">
           {/* Time column */}
@@ -123,7 +129,18 @@ export function AvailabilityCalendarGrid({
                 >
                   <div
                     data-day-column-body
-                    aria-label={dayLabels[colIndex]}
+                    // Focusable so the calendar can be operated without a
+                    // pointer: Enter creates a slot at the first free time.
+                    tabIndex={readOnly ? undefined : 0}
+                    role={readOnly ? undefined : "button"}
+                    aria-label={
+                      readOnly
+                        ? dayLabels[colIndex]
+                        : `${dayLabels[colIndex]}. Press Enter to add availability.`
+                    }
+                    onKeyDown={(e) => {
+                      if (handleColumnKeyDown(dayOfWeek, e)) e.preventDefault();
+                    }}
                     className={cn(
                       "ac-day-body",
                       !readOnly &&
@@ -278,15 +295,24 @@ export function AvailabilityCalendarGrid({
                           <div
                             key={String(s.id)}
                             data-availability-block
+                            // Focusable whenever it can be acted on: edited,
+                            // or activated via onSlotClick in readOnly mode.
                             tabIndex={
-                              handleSlotKeyboardActivate ? 0 : undefined
+                              !readOnly || handleSlotKeyboardActivate
+                                ? 0
+                                : undefined
                             }
                             role={
-                              handleSlotKeyboardActivate ? "button" : undefined
+                              !readOnly || handleSlotKeyboardActivate
+                                ? "button"
+                                : undefined
                             }
                             aria-label={
-                              handleSlotKeyboardActivate
-                                ? `Slot ${startLbl} to ${endLbl} on ${dayLabels[colIndex]}`
+                              !readOnly || handleSlotKeyboardActivate
+                                ? `${dayLabels[colIndex]}, ${startLbl} to ${endLbl}.` +
+                                  (readOnly
+                                    ? ""
+                                    : " Arrow keys move, Shift with arrows resizes, Delete removes.")
                                 : undefined
                             }
                             className={cn(
@@ -308,7 +334,16 @@ export function AvailabilityCalendarGrid({
                             onPointerDown={(e) =>
                               handleSlotMovePointerDown(s, e)
                             }
-                            onKeyDown={handleSlotKeyboardActivate}
+                            onKeyDown={(e) => {
+                              // Editing shortcuts win; activation only fires
+                              // when nothing else claimed the key.
+                              if (handleSlotKeyDown(s, e)) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                return;
+                              }
+                              handleSlotKeyboardActivate?.(e);
+                            }}
                           >
                             {!readOnly && (
                               <>

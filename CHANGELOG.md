@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-09-06
+
+### Added
+
+- Full keyboard operation. The calendar previously failed WCAG 2.1.1: slots
+  could be focused and activated, but not created, moved, resized or removed
+  without a pointer.
+
+  - A focused day column takes <kbd>Enter</kbd> or <kbd>Space</kbd> to add a
+    slot at the earliest free time on that day.
+  - A focused slot takes arrows to move, <kbd>Shift</kbd> with arrows to resize
+    from the end edge, and <kbd>Delete</kbd> or <kbd>Backspace</kbd> to remove.
+  - Every change is announced in a polite live region, and a move that would
+    collide is refused and announced rather than silently dropped.
+
+  The calendar deliberately does not adopt ARIA's `grid` role. That role
+  requires `row`/`gridcell` descendants across the whole surface — over a
+  thousand cells at a ten-minute snap — which would leave a screen-reader user
+  traversing all of them to reach a handful of slots. Slots and columns are
+  exposed as labelled buttons instead.
+
 ## [1.2.2] - 2026-09-06
 
 ### Fixed
@@ -165,7 +186,8 @@ No runtime changes — the published bundle is byte-identical to 1.2.0.
 
 - Initial public releases.
 
-[Unreleased]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.2.2...HEAD
+[Unreleased]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.2.2...v1.3.0
 [1.2.2]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.1.0...v1.2.0

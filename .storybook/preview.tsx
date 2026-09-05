@@ -4,7 +4,8 @@ const preview: Preview = {
   parameters: {
     controls: { expanded: true, matchers: { color: /(background|color)$/i } },
     docs: { toc: true },
-    a11y: { test: "todo" },
+    // Now that the calendar is keyboard-operable, axe failures are real.
+    a11y: { test: "error" },
     layout: "fullscreen",
   },
   decorators: [

@@ -12,6 +12,7 @@ import { getRowTopBorderClassName } from "./row-styles";
 import { daysBetween, formatClock, formatClockIntl } from "./utils";
 import { useAvailabilityCalendarPlacement } from "./use-placement";
 import { useAvailabilityCalendarPointerHandlers } from "./use-pointer-handlers";
+import { useAvailabilityCalendarKeyboard } from "./use-keyboard-handlers";
 import { useConsultationGrid } from "./use-grid";
 
 import type { AvailabilityCalendarProps, BlockedSlot } from "./types";
@@ -89,6 +90,18 @@ export function useAvailabilityCalendar({
     slotsRef,
     canPlaceRef,
   });
+
+  const { handleSlotKeyDown, handleColumnKeyDown, announcement } =
+    useAvailabilityCalendarKeyboard({
+      readOnly,
+      snapMinutes,
+      bounds: { startMinutes, endMinutes },
+      orderedDays,
+      slots,
+      blockedSlots,
+      onSlotsChange,
+      canPlaceRef,
+    });
 
   const dayLabels = useMemo(
     () => orderedDays.map((d) => getDayLabel(d, dayLabelFormat, locale)),
@@ -191,6 +204,9 @@ export function useAvailabilityCalendar({
     handleGridPointerDown,
     handleResizePointerDown,
     handleSlotMovePointerDown,
+    handleSlotKeyDown,
+    handleColumnKeyDown,
+    announcement,
     removeSlot,
   };
 }
