@@ -63,10 +63,22 @@ export const PROPS: PropRow[] = [
     desc: "Style of the sub-hour snap gridlines.",
   },
   {
+    name: "locale",
+    type: "string",
+    def: "—",
+    desc: "BCP 47 tag (e.g. de-DE) for day names and time labels, via Intl.",
+  },
+  {
+    name: "multiDayCreate",
+    type: "boolean",
+    def: "false",
+    desc: "Let one drag create the same range across several day columns.",
+  },
+  {
     name: "theme",
     type: "CalendarTheme",
     def: "—",
-    desc: "Colour overrides, applied as CSS custom properties.",
+    desc: "Colour overrides. Pass the exported darkTheme preset for dark mode.",
   },
   {
     name: "classNames",

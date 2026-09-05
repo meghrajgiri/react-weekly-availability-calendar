@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-09-05
+
+### Added
+
+- `darkTheme` — a ready-made `CalendarTheme` preset, so dark mode no longer
+  means hand-writing fifteen colour values. It composes: spread it and override
+  individual keys.
+- Per-slot `color` on `AvailabilitySlot`. Overrides `theme.slotBackground` for
+  that slot only, and follows the slot into the drag ghost.
+- `locale` prop. A BCP 47 tag drives `Intl` formatting for weekday headers, the
+  time gutter, slot labels and the drag ghost. Applies to both `"short"` and
+  `"long"` day labels; a custom `dayLabelFormat` function still takes
+  precedence.
+- `multiDayCreate` prop (opt-in, default `false`). One drag-to-create gesture
+  lays the same time range on every day column it covers. Days where the range
+  collides are skipped rather than aborting the sweep.
+- `useAvailabilityHistory` — undo/redo around the controlled `slots` /
+  `onSlotsChange` pair, with a bounded stack (default 50), `reset`, and
+  `canUndo`/`canRedo`/`undoCount`/`redoCount`.
+- A documentation site under `site/`, deployed to
+  ui.meghrajgiri.com/availability-calendar.
+
+### Changed
+
+- `npm run dev` now serves the documentation site. The former `playground/`
+  directory has become `site/`, so the demos and the published page are the
+  same code.
+
 ## [1.0.2] - 2026-09-05
 
 ### Fixed
@@ -84,7 +112,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial public releases.
 
-[Unreleased]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.0.2...v1.1.0
 [1.0.2]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/meghrajgiri/react-weekly-availability-calendar/releases/tag/v1.0.0

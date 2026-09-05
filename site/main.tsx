@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 
-import { AvailabilityCalendar } from "../src";
+import { AvailabilityCalendar, darkTheme } from "../src";
 import type { AvailabilitySlot } from "../src";
-import { demoDarkTheme, examples, seedBlocked, seedSlots } from "./examples";
+import { examples, seedBlocked, seedSlots } from "./examples";
 import { PROPS } from "./props";
 import "./styles.css";
 
@@ -103,7 +103,7 @@ function Hero({ dark }: { dark: boolean }) {
               blockedSlots={seedBlocked}
               snapMinutes={30}
               timeFormat="12"
-              theme={dark ? demoDarkTheme : undefined}
+              theme={dark ? darkTheme : undefined}
             />
           </div>
         </div>

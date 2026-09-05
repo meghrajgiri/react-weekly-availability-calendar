@@ -1,6 +1,10 @@
 import { useState } from "react";
 
-import { AvailabilityCalendar } from "../src";
+import {
+  AvailabilityCalendar,
+  darkTheme,
+  useAvailabilityHistory,
+} from "../src";
 import type { AvailabilitySlot, BlockedSlot } from "../src";
 
 export const seedSlots: AvailabilitySlot[] = [
@@ -14,6 +18,31 @@ export const seedBlocked: BlockedSlot[] = [
   { dayOfWeek: 4, startTime: "12:00", endTime: "13:00", label: "Lunch" },
 ];
 
+const colouredSlots: AvailabilitySlot[] = [
+  {
+    id: 1,
+    dayOfWeek: 1,
+    startTime: "09:00",
+    endTime: "12:00",
+    color: "#f59e0b",
+  },
+  {
+    id: 2,
+    dayOfWeek: 3,
+    startTime: "14:00",
+    endTime: "17:00",
+    color: "#10b981",
+  },
+  {
+    id: 3,
+    dayOfWeek: 5,
+    startTime: "10:00",
+    endTime: "13:00",
+    color: "#ec4899",
+  },
+  { id: 4, dayOfWeek: 2, startTime: "15:00", endTime: "16:30" },
+];
+
 /** One entry per demo on the page. Adding a new one is a single object. */
 export interface Example {
   id: string;
@@ -23,13 +52,8 @@ export interface Example {
   render: (dark: boolean) => React.ReactNode;
 }
 
-/** Shared props so each example only spells out what it is demonstrating. */
-function useSlots(initial: AvailabilitySlot[] = seedSlots) {
-  return useState<AvailabilitySlot[]>(initial);
-}
-
 function Basic({ dark }: { dark: boolean }) {
-  const [slots, setSlots] = useSlots();
+  const [slots, setSlots] = useState<AvailabilitySlot[]>(seedSlots);
   return (
     <AvailabilityCalendar
       slots={slots}
@@ -37,13 +61,13 @@ function Basic({ dark }: { dark: boolean }) {
       blockedSlots={seedBlocked}
       snapMinutes={30}
       timeFormat="12"
-      theme={dark ? DARK : undefined}
+      theme={dark ? darkTheme : undefined}
     />
   );
 }
 
 function ReadOnly({ dark }: { dark: boolean }) {
-  const [slots, setSlots] = useSlots();
+  const [slots, setSlots] = useState<AvailabilitySlot[]>(seedSlots);
   return (
     <AvailabilityCalendar
       slots={slots}
@@ -52,38 +76,58 @@ function ReadOnly({ dark }: { dark: boolean }) {
       snapMinutes={30}
       timeFormat="12"
       readOnly
-      theme={dark ? DARK : undefined}
+      theme={dark ? darkTheme : undefined}
     />
   );
 }
 
-function ClickToInspect({ dark }: { dark: boolean }) {
-  const [slots, setSlots] = useSlots();
-  const [last, setLast] = useState<AvailabilitySlot | null>(null);
+function Coloured({ dark }: { dark: boolean }) {
+  const [slots, setSlots] = useState<AvailabilitySlot[]>(colouredSlots);
   return (
-    <>
-      <div className="example-controls">
-        {last
-          ? `Slot ${String(last.id)} — ${last.startTime}–${last.endTime}`
-          : "Click a slot without dragging."}
-      </div>
-      <div className="example-body">
-        <AvailabilityCalendar
-          slots={slots}
-          onSlotsChange={setSlots}
-          blockedSlots={seedBlocked}
-          snapMinutes={30}
-          timeFormat="12"
-          onSlotClick={(slot) => setLast(slot)}
-          theme={dark ? DARK : undefined}
-        />
-      </div>
-    </>
+    <AvailabilityCalendar
+      slots={slots}
+      onSlotsChange={setSlots}
+      blockedSlots={seedBlocked}
+      snapMinutes={30}
+      timeFormat="12"
+      theme={dark ? darkTheme : undefined}
+    />
+  );
+}
+
+function Localised({ dark }: { dark: boolean }) {
+  const [slots, setSlots] = useState<AvailabilitySlot[]>(seedSlots);
+  return (
+    <AvailabilityCalendar
+      slots={slots}
+      onSlotsChange={setSlots}
+      blockedSlots={seedBlocked}
+      snapMinutes={30}
+      timeFormat="24"
+      locale="de-DE"
+      startDay={1}
+      theme={dark ? darkTheme : undefined}
+    />
+  );
+}
+
+function MultiDay({ dark }: { dark: boolean }) {
+  const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
+  return (
+    <AvailabilityCalendar
+      slots={slots}
+      onSlotsChange={setSlots}
+      blockedSlots={seedBlocked}
+      snapMinutes={30}
+      timeFormat="12"
+      multiDayCreate
+      theme={dark ? darkTheme : undefined}
+    />
   );
 }
 
 function CustomRender({ dark }: { dark: boolean }) {
-  const [slots, setSlots] = useSlots();
+  const [slots, setSlots] = useState<AvailabilitySlot[]>(seedSlots);
   return (
     <AvailabilityCalendar
       slots={slots}
@@ -94,7 +138,7 @@ function CustomRender({ dark }: { dark: boolean }) {
       startDay={1}
       dayLabelFormat="long"
       gridLineStyle="dotted"
-      theme={dark ? DARK : undefined}
+      theme={dark ? darkTheme : undefined}
       renderSlot={(_slot, info) => (
         <div style={{ padding: "2px 4px", fontSize: 11 }}>
           <strong>
@@ -124,34 +168,87 @@ function CustomRender({ dark }: { dark: boolean }) {
   );
 }
 
-/**
- * Inline dark palette. Once #13 lands this becomes `import { darkTheme }`,
- * and this constant goes away.
- */
-const DARK = {
-  calendarBackground: "#151a21",
-  borderColor: "#262d38",
-  headerBackground: "#0e1116",
-  headerTextColor: "#e8ecf1",
-  timeLabelColor: "#9aa4b2",
-  gridLineColor: "#262d38",
-  slotBackground: "#4f46e5",
-  slotTextColor: "#f4f4ff",
-  slotBorderColor: "#6366f1",
-  blockedBackground: "#1d232c",
-  blockedTextColor: "#9aa4b2",
-  blockedBorderColor: "#333c4a",
-  blockedStripeColor: "rgba(148,163,184,0.16)",
-  previewBackground: "rgba(99,102,241,0.28)",
-  previewBorderColor: "#818cf8",
-};
+/** Examples that need controls above the calendar render their own wrapper. */
+function ClickToInspect({ dark }: { dark: boolean }) {
+  const [slots, setSlots] = useState<AvailabilitySlot[]>(seedSlots);
+  const [last, setLast] = useState<AvailabilitySlot | null>(null);
+  return (
+    <>
+      <div className="example-controls">
+        {last
+          ? `Slot ${String(last.id)} — ${last.startTime}–${last.endTime}`
+          : "Click a slot without dragging, or focus one and press Enter."}
+      </div>
+      <div className="example-body">
+        <AvailabilityCalendar
+          slots={slots}
+          onSlotsChange={setSlots}
+          blockedSlots={seedBlocked}
+          snapMinutes={30}
+          timeFormat="12"
+          onSlotClick={(slot) => setLast(slot)}
+          theme={dark ? darkTheme : undefined}
+        />
+      </div>
+    </>
+  );
+}
+
+function UndoRedo({ dark }: { dark: boolean }) {
+  const {
+    slots,
+    onSlotsChange,
+    undo,
+    redo,
+    reset,
+    canUndo,
+    canRedo,
+    undoCount,
+  } = useAvailabilityHistory(seedSlots);
+  return (
+    <>
+      <div className="example-controls">
+        <button className="ctl" onClick={undo} disabled={!canUndo}>
+          Undo
+        </button>
+        <button className="ctl" onClick={redo} disabled={!canRedo}>
+          Redo
+        </button>
+        <button className="ctl" onClick={() => reset(seedSlots)}>
+          Reset
+        </button>
+        <span>
+          {undoCount} step{undoCount === 1 ? "" : "s"} recorded
+        </span>
+      </div>
+      <div className="example-body">
+        <AvailabilityCalendar
+          slots={slots}
+          onSlotsChange={onSlotsChange}
+          blockedSlots={seedBlocked}
+          snapMinutes={30}
+          timeFormat="12"
+          theme={dark ? darkTheme : undefined}
+        />
+      </div>
+    </>
+  );
+}
+
+/** Wraps a plain calendar demo in the standard fixed-height body. */
+const body =
+  (C: (p: { dark: boolean }) => React.ReactNode) => (dark: boolean) => (
+    <div className="example-body">
+      <C dark={dark} />
+    </div>
+  );
 
 export const examples: Example[] = [
   {
     id: "basic",
     title: "Basic",
     blurb:
-      "Drag on empty space to create, drag a slot to move it, drag an edge to resize, × to remove.",
+      "Drag empty space to create, drag a slot to move it, drag an edge to resize, × to remove.",
     code: `const [slots, setSlots] = useState<AvailabilitySlot[]>([
   { id: 1, dayOfWeek: 1, startTime: "09:00", endTime: "12:00" },
 ]);
@@ -165,17 +262,73 @@ export const examples: Example[] = [
   snapMinutes={30}
   timeFormat="12"
 />`,
-    render: (dark) => (
-      <div className="example-body">
-        <Basic dark={dark} />
-      </div>
-    ),
+    render: body(Basic),
+  },
+  {
+    id: "colors",
+    title: "Per-slot colors",
+    blurb:
+      "Give a slot its own color. Tuesday's has none and falls back to the theme. Drag one — the ghost keeps its color.",
+    code: `const slots = [
+  { id: 1, dayOfWeek: 1, startTime: "09:00", endTime: "12:00", color: "#f59e0b" },
+  { id: 2, dayOfWeek: 3, startTime: "14:00", endTime: "17:00", color: "#10b981" },
+  { id: 4, dayOfWeek: 2, startTime: "15:00", endTime: "16:30" }, // theme default
+];`,
+    render: body(Coloured),
+  },
+  {
+    id: "undo",
+    title: "useAvailabilityHistory",
+    blurb:
+      "Undo and redo around the controlled slots. Make a few edits, then step back through them.",
+    code: `const { slots, onSlotsChange, undo, redo, canUndo, canRedo } =
+  useAvailabilityHistory(initialSlots);
+
+<button onClick={undo} disabled={!canUndo}>Undo</button>
+<button onClick={redo} disabled={!canRedo}>Redo</button>
+
+<AvailabilityCalendar
+  slots={slots}
+  onSlotsChange={onSlotsChange}
+  snapMinutes={30}
+  timeFormat="12"
+/>`,
+    render: (dark) => <UndoRedo dark={dark} />,
+  },
+  {
+    id: "multiday",
+    title: "multiDayCreate",
+    blurb:
+      "Drag diagonally across columns to create the same range on every day it covers. Try starting on Sunday.",
+    code: `<AvailabilityCalendar
+  slots={slots}
+  onSlotsChange={setSlots}
+  snapMinutes={30}
+  timeFormat="12"
+  multiDayCreate
+/>`,
+    render: body(MultiDay),
+  },
+  {
+    id: "locale",
+    title: "locale",
+    blurb:
+      "German day names and 24-hour times through Intl. Applies to short labels too, not just long ones.",
+    code: `<AvailabilityCalendar
+  slots={slots}
+  onSlotsChange={setSlots}
+  snapMinutes={30}
+  timeFormat="24"
+  locale="de-DE"
+  startDay={1}
+/>`,
+    render: body(Localised),
   },
   {
     id: "readonly",
     title: "readOnly",
     blurb:
-      "Display existing availability without letting anyone edit it. onSlotClick still fires.",
+      "Display availability without letting anyone edit it. onSlotClick still fires.",
     code: `<AvailabilityCalendar
   slots={slots}
   onSlotsChange={setSlots}
@@ -183,11 +336,7 @@ export const examples: Example[] = [
   timeFormat="12"
   readOnly
 />`,
-    render: (dark) => (
-      <div className="example-body">
-        <ReadOnly dark={dark} />
-      </div>
-    ),
+    render: body(ReadOnly),
   },
   {
     id: "onslotclick",
@@ -207,7 +356,7 @@ export const examples: Example[] = [
     id: "custom",
     title: "renderSlot",
     blurb:
-      "Replace the slot and blocked-slot contents entirely. Also shows startDay, long labels and dotted gridlines.",
+      "Replace slot and blocked-slot contents entirely. Also shows startDay, long labels and dotted gridlines.",
     code: `<AvailabilityCalendar
   slots={slots}
   onSlotsChange={setSlots}
@@ -223,12 +372,6 @@ export const examples: Example[] = [
     </div>
   )}
 />`,
-    render: (dark) => (
-      <div className="example-body">
-        <CustomRender dark={dark} />
-      </div>
-    ),
+    render: body(CustomRender),
   },
 ];
-
-export { DARK as demoDarkTheme };
