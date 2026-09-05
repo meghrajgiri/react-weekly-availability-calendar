@@ -8,7 +8,6 @@ import {
 } from "./constants";
 import {
   clampGhostToGridArea,
-  formatClock,
   formatDurationLabel,
   hhmmToMinutes,
 } from "./utils";
@@ -27,7 +26,7 @@ export function AvailabilityCalendarMoveGhost({
     moveGhostSlot,
     calendarScrollRef,
     daysGridRef,
-    timeFormat,
+    formatTime,
     userClassNames: cx,
     renderSlot,
   } = model;
@@ -46,8 +45,8 @@ export function AvailabilityCalendarMoveGhost({
       const sm = hhmmToMinutes(moveGhostSlot.startTime);
       const em = hhmmToMinutes(moveGhostSlot.endTime);
       const dur = em - sm;
-      const startLbl = formatClock(sm, timeFormat).primary;
-      const endLbl = formatClock(em, timeFormat).primary;
+      const startLbl = formatTime(sm);
+      const endLbl = formatTime(em);
       const slotHeight = drag.heightPx;
       const isCompactSlot = slotHeight < ROW_HEIGHT_PX * 2;
       const durationLabel = formatDurationLabel(dur);

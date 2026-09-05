@@ -1,7 +1,7 @@
 import { XIcon } from "./icons";
 import { cn, slotColorVars } from "./cn";
 import { CALENDAR_HEADER_ROW_PX, ROW_HEIGHT_PX } from "./constants";
-import { formatClock, formatDurationLabel, hhmmToMinutes } from "./utils";
+import { formatDurationLabel, hhmmToMinutes } from "./utils";
 
 import type { DayOfWeek } from "./types";
 import type { AvailabilityCalendarModel } from "./use-availability-calendar";
@@ -35,7 +35,7 @@ export function AvailabilityCalendarGrid({
     blockedSlots,
     minutesToPx,
     slots,
-    timeFormat,
+    formatTime,
     orderedDays,
     dayLabels,
     userClassNames: cx,
@@ -204,8 +204,8 @@ export function AvailabilityCalendarGrid({
                         const top = minutesToPx(sm);
                         const h = minutesToPx(em) - minutesToPx(sm);
                         const dur = em - sm;
-                        const startLbl = formatClock(sm, timeFormat).primary;
-                        const endLbl = formatClock(em, timeFormat).primary;
+                        const startLbl = formatTime(sm);
+                        const endLbl = formatTime(em);
                         const slotHeight = Math.max(h, ROW_HEIGHT_PX);
                         const isCompactSlot = slotHeight < ROW_HEIGHT_PX * 2;
                         const durationLabel = formatDurationLabel(dur);

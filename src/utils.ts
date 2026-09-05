@@ -170,6 +170,81 @@ export function formatClock(
 }
 
 /**
+ * A Sunday, used as the anchor for weekday-name lookups.
+ * Constructed from local date parts so day arithmetic stays calendar-based.
+ */
+const WEEKDAY_ANCHOR_SUNDAY = { year: 2024, month: 0, day: 7 } as const;
+
+/** Cache of Intl formatters — constructing one per call is measurably slow. */
+const dayNameFormatters = new Map<string, Intl.DateTimeFormat>();
+const clockFormatters = new Map<string, Intl.DateTimeFormat>();
+
+/**
+ * Returns a locale-aware weekday name.
+ *
+ * The date is built by adding to the *day component* rather than by adding
+ * milliseconds: a raw 24h offset crosses DST boundaries incorrectly in zones
+ * that shift during the anchor week, which would yield the wrong weekday.
+ *
+ * @param dayOfWeek - Day of week (0 = Sunday).
+ * @param locale - BCP 47 language tag, e.g. "de-DE".
+ * @param format - "short" (e.g. "Sun") or "long" (e.g. "Sunday").
+ */
+export function getIntlDayName(
+  dayOfWeek: DayOfWeek,
+  locale: string,
+  format: "short" | "long" = "short"
+): string {
+  const key = `${locale}\u0000${format}`;
+  let fmt = dayNameFormatters.get(key);
+  if (!fmt) {
+    fmt = new Intl.DateTimeFormat(locale, { weekday: format });
+    dayNameFormatters.set(key, fmt);
+  }
+  const { year, month, day } = WEEKDAY_ANCHOR_SUNDAY;
+  return fmt.format(new Date(year, month, day + dayOfWeek));
+}
+
+/**
+ * Locale-aware variant of {@link formatClock}.
+ *
+ * For 24-hour display it pins `hourCycle: "h23"` rather than `hour12: false`,
+ * because some locales render midnight as "24:00" under the latter.
+ *
+ * @param minutes - Minutes since midnight.
+ * @param timeFormat - "12" or "24".
+ * @param locale - BCP 47 language tag.
+ */
+export function formatClockIntl(
+  minutes: number,
+  timeFormat: "12" | "24",
+  locale: string
+): { primary: string } {
+  // End-of-day is a grid convention, not a clock reading — keep it verbatim so
+  // it matches the non-Intl path.
+  if (minutes >= CONSULTATION_GRID_END_MINUTES) {
+    return formatClock(minutes, timeFormat);
+  }
+
+  const key = `${locale}\u0000${timeFormat}`;
+  let fmt = clockFormatters.get(key);
+  if (!fmt) {
+    fmt = new Intl.DateTimeFormat(
+      locale,
+      timeFormat === "12"
+        ? { hour: "numeric", minute: "2-digit", hour12: true }
+        : { hour: "2-digit", minute: "2-digit", hourCycle: "h23" }
+    );
+    clockFormatters.set(key, fmt);
+  }
+
+  const { year, month, day } = WEEKDAY_ANCHOR_SUNDAY;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return { primary: fmt.format(new Date(year, month, day, h, m)) };
+}
+
+/**
  * Formats a duration in minutes as a human-readable hours label (e.g. "1.5h").
  * @param durationMinutes - Duration in minutes.
  */

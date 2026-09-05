@@ -224,10 +224,38 @@ function DarkThemeExample() {
   );
 }
 
+function LocaleExample() {
+  const [slots, setSlots] = useState<AvailabilitySlot[]>(initialSlots);
+
+  return (
+    <div>
+      <h2 style={{ margin: "0 0 0.75rem", fontSize: 18, fontWeight: 600 }}>
+        locale
+      </h2>
+      <p style={{ margin: "0 0 0.75rem", color: "#6b7280", fontSize: 13 }}>
+        German day names and 24-hour times via <code>Intl</code>. Note the
+        default <code>dayLabelFormat=&quot;short&quot;</code> is localized too.
+      </p>
+      <div style={{ height: "60vh" }}>
+        <AvailabilityCalendar
+          slots={slots}
+          onSlotsChange={setSlots}
+          blockedSlots={blockedSlots}
+          snapMinutes={30}
+          timeFormat="24"
+          locale="de-DE"
+          startDay={1}
+        />
+      </div>
+    </div>
+  );
+}
+
 function App() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "3rem" }}>
       <DefaultExample />
+      <LocaleExample />
       <DarkThemeExample />
       <OnSlotClickExample />
       <CustomizedExample />

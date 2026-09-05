@@ -57,6 +57,7 @@ function App() {
 | `startDay`          | `DayOfWeek` (0-6)                      | `0` (Sunday) | First day of the week                                                         |
 | `dayLabelFormat`    | `"short" \| "long" \| (day) => string` | `"short"`    | Day header labels                                                             |
 | `gridLineStyle`     | `"solid" \| "dashed" \| "dotted"`      | `"dashed"`   | Snap grid line style                                                          |
+| `locale`            | `string`                               | —            | BCP 47 tag (e.g. `"de-DE"`) for day names and time labels                     |
 | `theme`             | `CalendarTheme`                        | —            | Color overrides. Pass the exported `darkTheme` preset for dark mode.          |
 | `classNames`        | `CalendarClassNames`                   | —            | CSS class overrides per part                                                  |
 | `renderSlot`        | `(slot, info) => ReactNode`            | —            | Custom slot content                                                           |
@@ -82,6 +83,19 @@ function App() {
   // ...
 />
 ```
+
+### Locale
+
+Pass a BCP 47 tag to localize day names and time labels via `Intl`:
+
+```tsx
+<AvailabilityCalendar locale="de-DE" dayLabelFormat="short" /* ... */ />
+// headers: Mo, Di, Mi, Do, Fr, Sa, So
+```
+
+`locale` applies to both `"short"` and `"long"` day labels and to time
+formatting. A custom `dayLabelFormat` function still takes precedence. With no
+`locale`, built-in English labels are used.
 
 ### Dark mode
 

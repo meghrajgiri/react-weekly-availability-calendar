@@ -2,7 +2,7 @@ import { useCallback, useMemo } from "react";
 
 import { ROW_HEIGHT_PX, getDayLabel, getOrderedDays } from "./constants";
 import { getRowTopBorderClassName } from "./row-styles";
-import { formatClock } from "./utils";
+import { formatClock, formatClockIntl } from "./utils";
 import { useAvailabilityCalendarPlacement } from "./use-placement";
 import { useAvailabilityCalendarPointerHandlers } from "./use-pointer-handlers";
 import { useConsultationGrid } from "./use-grid";
@@ -32,6 +32,7 @@ export function useAvailabilityCalendar({
   startDay = 0,
   dayLabelFormat = "short",
   gridLineStyle = "dashed",
+  locale,
   classNames: userClassNames,
   renderSlot,
   renderBlockedSlot,
@@ -70,8 +71,8 @@ export function useAvailabilityCalendar({
   });
 
   const dayLabels = useMemo(
-    () => orderedDays.map((d) => getDayLabel(d, dayLabelFormat)),
-    [orderedDays, dayLabelFormat]
+    () => orderedDays.map((d) => getDayLabel(d, dayLabelFormat, locale)),
+    [orderedDays, dayLabelFormat, locale]
   );
 
   const removeSlot = (id: number | string) => {
@@ -81,15 +82,23 @@ export function useAvailabilityCalendar({
     onSlotsChange(next);
   };
 
+  const formatTime = useCallback(
+    (minutes: number) =>
+      locale
+        ? formatClockIntl(minutes, timeFormat, locale).primary
+        : formatClock(minutes, timeFormat).primary,
+    [timeFormat, locale]
+  );
+
   const timeLabels = useMemo(() => {
     const labels: (string | null)[] = [];
     for (let i = 0; i < totalRows; i++) {
       const m = rowToMinutes(i);
       const isHour = m % 60 === 0;
-      labels.push(isHour ? formatClock(m, timeFormat).primary : null);
+      labels.push(isHour ? formatTime(m) : null);
     }
     return labels;
-  }, [totalRows, rowToMinutes, timeFormat]);
+  }, [totalRows, rowToMinutes, formatTime]);
 
   const rowTopBorderClass = useCallback(
     (rowIndex: number) =>
@@ -127,6 +136,8 @@ export function useAvailabilityCalendar({
     readOnly,
     snapMinutes,
     timeFormat,
+    locale,
+    formatTime,
     gridLineStyle,
     orderedDays,
     dayLabels,
