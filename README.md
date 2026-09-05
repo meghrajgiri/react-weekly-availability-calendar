@@ -57,7 +57,7 @@ function App() {
 | `startDay`          | `DayOfWeek` (0-6)                      | `0` (Sunday) | First day of the week                                                         |
 | `dayLabelFormat`    | `"short" \| "long" \| (day) => string` | `"short"`    | Day header labels                                                             |
 | `gridLineStyle`     | `"solid" \| "dashed" \| "dotted"`      | `"dashed"`   | Snap grid line style                                                          |
-| `theme`             | `CalendarTheme`                        | —            | Color overrides                                                               |
+| `theme`             | `CalendarTheme`                        | —            | Color overrides. Pass the exported `darkTheme` preset for dark mode.          |
 | `classNames`        | `CalendarClassNames`                   | —            | CSS class overrides per part                                                  |
 | `renderSlot`        | `(slot, info) => ReactNode`            | —            | Custom slot content                                                           |
 | `renderBlockedSlot` | `(slot) => ReactNode`                  | —            | Custom blocked slot content                                                   |
@@ -82,6 +82,53 @@ function App() {
   // ...
 />
 ```
+
+### Dark mode
+
+A `darkTheme` preset ships with the package:
+
+```tsx
+import {
+  AvailabilityCalendar,
+  darkTheme,
+} from "react-weekly-availability-calendar";
+
+<AvailabilityCalendar theme={darkTheme} /* ... */ />;
+
+// Override individual colors while keeping the rest of the preset:
+<AvailabilityCalendar
+  theme={{ ...darkTheme, slotBackground: "#a78bfa" }}
+  /* ... */
+/>;
+```
+
+### Per-slot colors
+
+Give any slot its own background with `color`. It overrides
+`theme.slotBackground` for that slot only, and follows the slot into the drag
+ghost:
+
+```tsx
+const [slots, setSlots] = useState<AvailabilitySlot[]>([
+  {
+    id: 1,
+    dayOfWeek: 1,
+    startTime: "09:00",
+    endTime: "12:00",
+    color: "#f59e0b",
+  },
+  {
+    id: 2,
+    dayOfWeek: 3,
+    startTime: "14:00",
+    endTime: "17:00",
+    color: "#10b981",
+  },
+]);
+```
+
+Any CSS color value works. Note that when two slots merge, the surviving slot
+keeps its own color.
 
 ### classNames (Tailwind / CSS)
 
@@ -154,6 +201,7 @@ interface AvailabilitySlot {
   dayOfWeek: DayOfWeek;
   startTime: string; // "HH:mm"
   endTime: string; // "HH:mm"
+  color?: string; // optional per-slot background
 }
 
 interface BlockedSlot {

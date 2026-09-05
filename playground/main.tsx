@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createRoot } from "react-dom/client";
-import { AvailabilityCalendar } from "../src";
+import { AvailabilityCalendar, darkTheme } from "../src";
 import type { AvailabilitySlot, BlockedSlot } from "../src";
 
 const initialSlots: AvailabilitySlot[] = [
@@ -172,10 +172,63 @@ function OnSlotClickExample() {
   );
 }
 
+const coloredSlots: AvailabilitySlot[] = [
+  {
+    id: 1,
+    dayOfWeek: 1,
+    startTime: "09:00",
+    endTime: "12:00",
+    color: "#f59e0b",
+  },
+  {
+    id: 2,
+    dayOfWeek: 3,
+    startTime: "14:00",
+    endTime: "17:00",
+    color: "#10b981",
+  },
+  {
+    id: 3,
+    dayOfWeek: 5,
+    startTime: "10:00",
+    endTime: "13:00",
+    color: "#ec4899",
+  },
+  { id: 4, dayOfWeek: 2, startTime: "15:00", endTime: "16:30" },
+];
+
+function DarkThemeExample() {
+  const [slots, setSlots] = useState<AvailabilitySlot[]>(coloredSlots);
+
+  return (
+    <div>
+      <h2 style={{ margin: "0 0 0.75rem", fontSize: 18, fontWeight: 600 }}>
+        darkTheme preset + per-slot colors
+      </h2>
+      <p style={{ margin: "0 0 0.75rem", color: "#6b7280", fontSize: 13 }}>
+        Three slots set their own <code>color</code>; Tuesday&apos;s has none
+        and falls back to the theme. Drag one to confirm the ghost keeps its
+        color.
+      </p>
+      <div style={{ height: "60vh" }}>
+        <AvailabilityCalendar
+          slots={slots}
+          onSlotsChange={setSlots}
+          blockedSlots={blockedSlots}
+          snapMinutes={30}
+          timeFormat="12"
+          theme={darkTheme}
+        />
+      </div>
+    </div>
+  );
+}
+
 function App() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "3rem" }}>
       <DefaultExample />
+      <DarkThemeExample />
       <OnSlotClickExample />
       <CustomizedExample />
       <ClassNamesExample />

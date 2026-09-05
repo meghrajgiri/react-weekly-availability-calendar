@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { slotColorVars } from "./cn";
+
 import type { AvailabilitySlot } from "./types";
 import {
   clampGhostToGridArea,
@@ -353,5 +355,22 @@ describe("newTempAvailabilitySlotId", () => {
     );
     expect(ids.size).toBe(500);
     for (const id of ids) expect(id.startsWith("temp-")).toBe(true);
+  });
+});
+
+describe("slotColorVars", () => {
+  it("emits the custom property when a colour is set", () => {
+    expect(slotColorVars("#ff0000")).toEqual({ "--ac-slot-color": "#ff0000" });
+  });
+
+  it("passes through any CSS colour form", () => {
+    for (const c of ["red", "rgb(1,2,3)", "hsl(0 100% 50%)", "var(--x)"]) {
+      expect(slotColorVars(c)).toEqual({ "--ac-slot-color": c });
+    }
+  });
+
+  it("emits nothing when unset, so the theme default applies", () => {
+    expect(slotColorVars(undefined)).toEqual({});
+    expect(slotColorVars("")).toEqual({});
   });
 });
