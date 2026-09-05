@@ -7,6 +7,13 @@
     "sourceMap": false,
     "rootDir": "."
   },
-  "include": ["src", "site", "vitest.config.ts", "tsup.config.ts"],
+  "include": [
+    "src",
+    "site",
+    "stories",
+    ".storybook",
+    "vitest.config.ts",
+    "tsup.config.ts"
+  ],
   "exclude": ["node_modules", "dist"]
 }

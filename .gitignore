@@ -1,6 +1,7 @@
 node_modules
 dist
 dist-site
+storybook-static
 *.tsbuildinfo
 .DS_Store
 .claude

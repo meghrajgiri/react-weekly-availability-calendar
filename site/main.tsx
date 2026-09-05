@@ -4,11 +4,11 @@ import { createRoot } from "react-dom/client";
 import { AvailabilityCalendar, darkTheme } from "../src";
 import type { AvailabilitySlot } from "../src";
 import { examples, seedBlocked, seedSlots } from "./examples";
-import { PROPS } from "./props";
 import "./styles.css";
 
 const REPO =
   "https://github.com/meghrajgiri/react-weekly-availability-calendar";
+const STORYBOOK = "/availability-calendar/storybook/";
 const NPM = "https://www.npmjs.com/package/react-weekly-availability-calendar";
 const PKG = "react-weekly-availability-calendar";
 const VERSION = __PKG_VERSION__;
@@ -177,7 +177,10 @@ function App() {
             Examples
           </a>
           <a className="nav-link nav-link--hide-sm" href="#props">
-            Props
+            API
+          </a>
+          <a className="nav-link" href={STORYBOOK}>
+            Storybook
           </a>
           <a className="nav-link" href={NPM}>
             npm
@@ -223,41 +226,18 @@ function App() {
           </section>
 
           <section className="section" id="props">
-            <h2>Props</h2>
+            <h2>Full API reference</h2>
             <p className="sub">
-              Full reference in the <a href={`${REPO}#props`}>README</a>.
+              Every prop, every variant, with live controls — generated directly
+              from the TypeScript types, so it can never drift from the source.
             </p>
-            <div className="table-scroll">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Prop</th>
-                    <th>Type</th>
-                    <th>Default</th>
-                    <th>Description</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {PROPS.map((p) => (
-                    <tr key={p.name}>
-                      <td>
-                        <code>{p.name}</code>
-                      </td>
-                      <td>
-                        <code>{p.type}</code>
-                      </td>
-                      <td>
-                        {p.required ? (
-                          <span className="req">required</span>
-                        ) : (
-                          <code>{p.def}</code>
-                        )}
-                      </td>
-                      <td className="desc">{p.desc}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="cta-row">
+              <a className="btn btn--primary" href={STORYBOOK}>
+                Open Storybook →
+              </a>
+              <a className="btn" href={`${REPO}#props`}>
+                README
+              </a>
             </div>
           </section>
         </div>
@@ -270,6 +250,7 @@ function App() {
             <span className="footer-links">
               <a href={NPM}>npm</a>
               <a href={REPO}>GitHub</a>
+              <a href={STORYBOOK}>Storybook</a>
               <a href={`${REPO}/blob/main/CHANGELOG.md`}>Changelog</a>
             </span>
           </div>

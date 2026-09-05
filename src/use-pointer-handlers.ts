@@ -214,7 +214,6 @@ export function useAvailabilityCalendarPointerHandlers({
     [
       readOnly,
       multiDayCreate,
-      startMinutes,
       endMinutes,
       clientYToRow,
       rowToMinutes,
