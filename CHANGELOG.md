@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-09-06
+
+### Changed
+
+- Documentation is now split by audience, and the API reference is generated
+  rather than hand-maintained. Props were previously duplicated across
+  `types.ts`, the README table and the docs site, and had begun to drift;
+  Storybook derives them from the types, TSDoc included, so they cannot fall
+  out of sync. The README keeps what it is, install and quick start, and links
+  out for the full reference.
+
+No runtime changes — the published bundle is byte-identical to 1.2.0.
+
 ## [1.2.0] - 2026-09-05
 
 ### Added
@@ -130,7 +143,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial public releases.
 
-[Unreleased]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.2.1...HEAD
+[1.2.1]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.0.2...v1.1.0
 [1.0.2]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.0.1...v1.0.2
