@@ -215,6 +215,9 @@ export function useAvailabilityCalendarPointerHandlers({
       lockCalendarTouchScroll();
 
       const pointerId = e.pointerId;
+      // Tracks whether the gesture actually changed anything, so a stray
+      // press on a handle does not trigger a merge of untouched slots.
+      let didResize = false;
       try {
         col.setPointerCapture(pointerId);
       } catch {}
@@ -262,9 +265,9 @@ export function useAvailabilityCalendarPointerHandlers({
           }
           startM = newStart;
         } else {
-          let newEnd =
-            snapMinutesDown(rowToMinutes(row + 1), snapMinutes) ||
-            rowToMinutes(row + 1);
+          // `rowToMinutes` already returns a multiple of `snapMinutes`, so no
+          // further snapping is needed here.
+          let newEnd = rowToMinutes(row + 1);
           newEnd = Math.min(CONSULTATION_GRID_END_MINUTES, newEnd);
           newEnd = Math.max(newEnd, startM + snapMinutes);
           newEnd = Math.min(CONSULTATION_GRID_END_MINUTES, newEnd);
@@ -274,23 +277,32 @@ export function useAvailabilityCalendarPointerHandlers({
           endM = newEnd;
         }
 
-        const next = mergeAdjacentSlots(
-          prev.map((s) =>
-            s.id === slot.id
-              ? {
-                  ...s,
-                  startTime: minutesToHHmm(startM),
-                  endTime: minutesToHHmm(endM),
-                }
-              : s
-          )
+        // Deliberately NOT merged here. Merging mid-drag can fold this slot
+        // into an adjacent one, and the merge keeps only the earliest slot's
+        // id — so the id this gesture is tracking would disappear and every
+        // subsequent pointermove would fail to find its subject, freezing the
+        // drag. Merging happens once, on pointerup.
+        const next = prev.map((s) =>
+          s.id === slot.id
+            ? {
+                ...s,
+                startTime: minutesToHHmm(startM),
+                endTime: minutesToHHmm(endM),
+              }
+            : s
         );
+        didResize = true;
         slotsRef.current = next;
         onSlotsChange(next);
       };
 
       const onUp = (ev: PointerEvent) => {
         if (ev.pointerId !== pointerId) return;
+        if (didResize) {
+          const merged = mergeAdjacentSlots(slotsRef.current);
+          slotsRef.current = merged;
+          onSlotsChange(merged);
+        }
         endResize();
       };
 
@@ -408,10 +420,19 @@ export function useAvailabilityCalendarPointerHandlers({
         heightPx: slotRect.height,
       });
 
+      // Scoped to this calendar's own grid: a document-wide query would also
+      // restyle any other <AvailabilityCalendar> mounted on the page.
+      const dayColumnEls = (): HTMLElement[] =>
+        Array.from(
+          daysGridRef.current?.querySelectorAll<HTMLElement>(
+            "[data-day-column-body]"
+          ) ?? []
+        );
+
       const cal = calendarContainerRef.current;
       if (cal) cal.style.cursor = "grabbing";
-      for (const el of document.querySelectorAll("[data-day-column-body]")) {
-        (el as HTMLElement).style.cursor = "grabbing";
+      for (const el of dayColumnEls()) {
+        el.style.cursor = "grabbing";
       }
 
       const ac = new AbortController();
@@ -430,8 +451,8 @@ export function useAvailabilityCalendarPointerHandlers({
         setMovePointerWorld(null);
         const calEl = calendarContainerRef.current;
         if (calEl) calEl.style.removeProperty("cursor");
-        for (const el of document.querySelectorAll("[data-day-column-body]")) {
-          (el as HTMLElement).style.removeProperty("cursor");
+        for (const el of dayColumnEls()) {
+          el.style.removeProperty("cursor");
         }
         ac.abort();
         unlockCalendarTouchScroll();
