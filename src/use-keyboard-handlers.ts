@@ -22,6 +22,9 @@ interface UseKeyboardHandlersParams {
   readOnly: boolean;
   snapMinutes: number;
   bounds: GridBounds;
+  disabledDays: ReadonlySet<DayOfWeek>;
+  minSlotMinutes: number;
+  maxSlotMinutes: number;
   orderedDays: DayOfWeek[];
   slots: AvailabilitySlot[];
   blockedSlots: BlockedSlot[];
@@ -53,6 +56,9 @@ export function useAvailabilityCalendarKeyboard({
   readOnly,
   snapMinutes,
   bounds,
+  disabledDays,
+  minSlotMinutes,
+  maxSlotMinutes,
   orderedDays,
   slots,
   blockedSlots,
@@ -106,12 +112,11 @@ export function useAvailabilityCalendarKeyboard({
         case "ArrowDown": {
           const dir = e.key === "ArrowDown" ? 1 : -1;
           if (e.shiftKey) {
-            const next = resizeSlotEnd(
-              slot,
-              dir * snapMinutes,
-              snapMinutes,
-              bounds
-            );
+            const next = resizeSlotEnd(slot, dir * snapMinutes, snapMinutes, {
+              ...bounds,
+              minSlotMinutes,
+              maxSlotMinutes,
+            });
             if (!next) return true;
             applyToSlot(
               slot,
@@ -163,6 +168,10 @@ export function useAvailabilityCalendarKeyboard({
   const addSlotToDay = useCallback(
     (dayOfWeek: DayOfWeek): void => {
       if (readOnly) return;
+      if (disabledDays.has(dayOfWeek)) {
+        setAnnouncement("That day is not available");
+        return;
+      }
 
       const occupied = [
         ...slots.filter((s) => s.dayOfWeek === dayOfWeek),
@@ -172,12 +181,10 @@ export function useAvailabilityCalendarKeyboard({
         end: hhmmToMinutes(s.endTime),
       }));
 
-      const duration = Math.max(
-        snapMinutes,
-        Math.min(
-          DEFAULT_NEW_SLOT_MINUTES,
-          bounds.endMinutes - bounds.startMinutes
-        )
+      const duration = Math.min(
+        Math.max(DEFAULT_NEW_SLOT_MINUTES, minSlotMinutes),
+        maxSlotMinutes,
+        bounds.endMinutes - bounds.startMinutes
       );
       const range = findFreeRange(duration, snapMinutes, bounds, occupied);
       if (!range) {
@@ -190,7 +197,17 @@ export function useAvailabilityCalendarKeyboard({
         `Slot added, ${range.startTime} to ${range.endTime}`
       );
     },
-    [readOnly, slots, blockedSlots, snapMinutes, bounds, commit]
+    [
+      readOnly,
+      slots,
+      blockedSlots,
+      snapMinutes,
+      bounds,
+      disabledDays,
+      minSlotMinutes,
+      maxSlotMinutes,
+      commit,
+    ]
   );
 
   return { handleSlotKeyDown, addSlotToDay, announcement };

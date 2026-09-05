@@ -69,6 +69,9 @@ export interface CalendarTheme {
   /** Blocked slot stripe color */
   blockedStripeColor?: string;
 
+  /** Stripe colour for disabled days */
+  disabledStripeColor?: string;
+
   /** Create-preview (drag-to-create) background */
   previewBackground?: string;
   /** Create-preview border color */
@@ -132,6 +135,31 @@ export interface AvailabilityCalendarProps {
    * (default: 24). `24` means end of day.
    */
   endHour?: number;
+  /**
+   * Days that cannot be edited, e.g. `[0, 6]` for weekends.
+   *
+   * Presentational and behavioural, not destructive: existing slots on a
+   * disabled day still render, they simply cannot be created, moved, resized
+   * or removed. Your data is never rewritten.
+   */
+  disabledDays?: DayOfWeek[];
+  /**
+   * Shortest slot that may be created or resized to, in minutes.
+   * Defaults to `snapMinutes`, the smallest the grid can represent.
+   *
+   * A drag shorter than this is grown to meet it where there is room, rather
+   * than being discarded.
+   */
+  minSlotMinutes?: number;
+  /**
+   * Longest slot that may be created or resized to, in minutes.
+   * Unlimited by default.
+   *
+   * A drag longer than this is trimmed to it, so an over-long gesture still
+   * produces a slot instead of nothing.
+   */
+  maxSlotMinutes?: number;
+
   /**
    * Allow a single drag-to-create gesture to span several day columns,
    * creating the same time range on each day it covers.

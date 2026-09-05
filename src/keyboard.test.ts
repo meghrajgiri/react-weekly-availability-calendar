@@ -143,3 +143,53 @@ describe("findFreeRange", () => {
     });
   });
 });
+
+describe("resizeSlotEnd with duration limits", () => {
+  it("stops growing at the maximum", () => {
+    const limits = { ...bounds, maxSlotMinutes: 90 };
+    expect(resizeSlotEnd(slot("10:00", "11:00"), 30, 30, limits)).toEqual({
+      startTime: "10:00",
+      endTime: "11:30",
+    });
+    // Already at the maximum, so there is nothing to report.
+    expect(resizeSlotEnd(slot("10:00", "11:30"), 30, 30, limits)).toBeNull();
+  });
+
+  it("trims an over-long step back to the maximum", () => {
+    expect(
+      resizeSlotEnd(slot("10:00", "11:00"), 120, 30, {
+        ...bounds,
+        maxSlotMinutes: 90,
+      })
+    ).toEqual({ startTime: "10:00", endTime: "11:30" });
+  });
+
+  it("stops shrinking at the minimum", () => {
+    const limits = { ...bounds, minSlotMinutes: 60 };
+    expect(resizeSlotEnd(slot("10:00", "11:00"), -30, 30, limits)).toBeNull();
+    expect(resizeSlotEnd(slot("10:00", "12:00"), -30, 30, limits)).toEqual({
+      startTime: "10:00",
+      endTime: "11:30",
+    });
+  });
+
+  it("never lets a minimum go below one snap increment", () => {
+    // A caller asking for a 10-minute minimum on a 30-minute grid cannot get
+    // a slot the grid is unable to represent.
+    expect(
+      resizeSlotEnd(slot("10:00", "10:30"), -30, 30, {
+        ...bounds,
+        minSlotMinutes: 10,
+      })
+    ).toBeNull();
+  });
+
+  it("still respects the window when a maximum would exceed it", () => {
+    expect(
+      resizeSlotEnd(slot("16:00", "16:30"), 120, 30, {
+        ...bounds,
+        maxSlotMinutes: 600,
+      })
+    ).toEqual({ startTime: "16:00", endTime: "17:00" });
+  });
+});

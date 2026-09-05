@@ -292,6 +292,24 @@ const CSS_TEXT = /* css */ `
   z-index: -1;
   pointer-events: none;
 }
+/* A disabled day: visibly inert, and nothing in it responds to a pointer.
+   Existing slots still render, so the data stays legible. */
+.ac-day-body--disabled {
+  cursor: not-allowed;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 5px,
+    var(--ac-disabled-stripe, color-mix(in srgb, var(--ac-fg) 5%, transparent))
+      5px,
+    var(--ac-disabled-stripe, color-mix(in srgb, var(--ac-fg) 5%, transparent))
+      10px
+  );
+}
+.ac-day-body--disabled .ac-slot {
+  opacity: 0.55;
+}
+
 .ac-day-body--crosshair {
   cursor: crosshair;
 }

@@ -759,3 +759,120 @@ describe("gridline rendering", () => {
     expect(slot.contains(hit)).toBe(true);
   });
 });
+
+describe("duration limits", () => {
+  it("grows a too-short drag up to the minimum", async () => {
+    const onChange = vi.fn();
+    render(<Harness onChange={onChange} minSlotMinutes={120} />);
+    const cols = await readyColumns();
+
+    // A single-row gesture would normally make a one-hour slot.
+    await drag(cols[1], rowPoint(cols[1], 0), rowPoint(cols[1], 0));
+
+    const next = onChange.mock.lastCall![0] as AvailabilitySlot[];
+    expect(next[0]).toMatchObject({ startTime: "09:00", endTime: "11:00" });
+  });
+
+  it("trims an over-long drag down to the maximum", async () => {
+    const onChange = vi.fn();
+    render(<Harness onChange={onChange} maxSlotMinutes={120} />);
+    const cols = await readyColumns();
+
+    await drag(cols[1], rowPoint(cols[1], 0), rowPoint(cols[1], 6));
+
+    const next = onChange.mock.lastCall![0] as AvailabilitySlot[];
+    expect(next[0]).toMatchObject({ startTime: "09:00", endTime: "11:00" });
+  });
+
+  it("caps a keyboard resize at the maximum", async () => {
+    const onChange = vi.fn();
+    render(
+      <Harness
+        onChange={onChange}
+        maxSlotMinutes={120}
+        initial={[
+          { id: "a", dayOfWeek: 1, startTime: "10:00", endTime: "11:00" },
+        ]}
+      />
+    );
+    await readyColumns();
+    document.querySelector<HTMLElement>("[data-availability-block]")!.focus();
+
+    await userEvent.keyboard("{Shift>}{ArrowDown}{/Shift}");
+    expect((onChange.mock.lastCall![0] as AvailabilitySlot[])[0]).toMatchObject(
+      {
+        endTime: "12:00",
+      }
+    );
+
+    onChange.mockClear();
+    document.querySelector<HTMLElement>("[data-availability-block]")!.focus();
+    await userEvent.keyboard("{Shift>}{ArrowDown}{/Shift}");
+    expect(onChange).not.toHaveBeenCalled();
+  });
+});
+
+describe("disabled days", () => {
+  it("refuses to create on a disabled day", async () => {
+    const onChange = vi.fn();
+    render(<Harness onChange={onChange} disabledDays={[1]} />);
+    const cols = await readyColumns();
+
+    await drag(cols[1], rowPoint(cols[1], 0), rowPoint(cols[1], 2));
+    expect(onChange).not.toHaveBeenCalled();
+
+    // A neighbouring day still works.
+    await drag(cols[2], rowPoint(cols[2], 0), rowPoint(cols[2], 2));
+    expect(onChange).toHaveBeenCalled();
+  });
+
+  it("refuses to move a slot onto a disabled day", async () => {
+    const onChange = vi.fn();
+    render(
+      <Harness
+        onChange={onChange}
+        disabledDays={[2]}
+        initial={[
+          { id: "a", dayOfWeek: 1, startTime: "10:00", endTime: "11:00" },
+        ]}
+      />
+    );
+    await readyColumns();
+    document.querySelector<HTMLElement>("[data-availability-block]")!.focus();
+
+    await userEvent.keyboard("{ArrowRight}");
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("still renders existing slots on a disabled day, without controls", async () => {
+    render(
+      <Harness
+        disabledDays={[1]}
+        initial={[
+          { id: "a", dayOfWeek: 1, startTime: "10:00", endTime: "11:00" },
+        ]}
+      />
+    );
+    const cols = await readyColumns();
+    const block = cols[1].querySelector("[data-availability-block]")!;
+
+    // The data is shown, but nothing in it is operable.
+    expect(block).toBeTruthy();
+    expect(block.querySelectorAll('[aria-label="Remove slot"]')).toHaveLength(
+      0
+    );
+    expect(block.querySelectorAll("[data-slot-resize]")).toHaveLength(0);
+  });
+
+  it("marks the column disabled and offers no add button", async () => {
+    render(<Harness disabledDays={[0, 6]} />);
+    const cols = await readyColumns();
+
+    expect(cols[0].getAttribute("aria-disabled")).toBe("true");
+    expect(cols[6].getAttribute("aria-disabled")).toBe("true");
+    expect(cols[0].querySelectorAll("[data-add-slot]")).toHaveLength(0);
+
+    expect(cols[1].hasAttribute("aria-disabled")).toBe(false);
+    expect(cols[1].querySelectorAll("[data-add-slot]")).toHaveLength(1);
+  });
+});
