@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.2] - 2026-09-06
+
+### Fixed
+
+- Pointer position now resolves to the correct day column at every width.
+  `dayIndexFromClientX` divided the days-grid element's width by seven, but
+  below the 768px breakpoint the columns are pinned to a fixed width while the
+  grid element still stretches to fill its parent. The buckets then stopped
+  lining up with the real columns and a pointer over one day resolved to the
+  previous one — drifting a full column by the fourth. It now hit-tests the
+  column elements directly.
+
+  Found by the new interaction tests, not by inspection.
+
+### Changed
+
+- Internal: added 14 interaction tests running in real Chromium via Vitest
+  browser mode, covering drag to create, move, resize, multi-day spans,
+  removal, click-versus-drag and hour-range clipping. jsdom cannot test this
+  component — it returns zeros from `getBoundingClientRect`, which every drag
+  calculation here depends on.
+
 ## [1.2.1] - 2026-09-06
 
 ### Changed
@@ -143,7 +165,8 @@ No runtime changes — the published bundle is byte-identical to 1.2.0.
 
 - Initial public releases.
 
-[Unreleased]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.2.1...HEAD
+[Unreleased]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.2.2...HEAD
+[1.2.2]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.0.2...v1.1.0
