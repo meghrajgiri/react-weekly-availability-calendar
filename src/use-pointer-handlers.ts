@@ -16,6 +16,7 @@ import {
 import { useLatestRef } from "./use-latest-ref";
 import {
   dayIndexFromClientX,
+  daysBetween,
   hhmmToMinutes,
   mergeAdjacentSlots,
   minutesToHHmm,
@@ -29,6 +30,7 @@ const CLICK_MOVEMENT_THRESHOLD_PX = 4;
 /** Parameters for the pointer handlers hook. */
 interface UseAvailabilityCalendarPointerHandlersParams {
   readOnly: boolean;
+  multiDayCreate: boolean;
   snapMinutes: 10 | 30 | 60;
   totalRows: number;
   orderedDays: DayOfWeek[];
@@ -56,6 +58,7 @@ interface UseAvailabilityCalendarPointerHandlersParams {
  */
 export function useAvailabilityCalendarPointerHandlers({
   readOnly,
+  multiDayCreate,
   snapMinutes,
   totalRows,
   orderedDays,
@@ -118,6 +121,7 @@ export function useAvailabilityCalendarPointerHandlers({
       setDrag({
         kind: "create",
         dayOfWeek,
+        currentDayOfWeek: dayOfWeek,
         startRow,
         currentRow: startRow,
         pointerId,
@@ -141,12 +145,17 @@ export function useAvailabilityCalendarPointerHandlers({
         if (ev.pointerId !== pointerId) return;
         ev.preventDefault();
         const r = clientYToRow(ev.clientY, col);
+        const grid = daysGridRef.current;
+        const currentDay =
+          multiDayCreate && grid
+            ? dayIndexFromClientX(ev.clientX, grid, orderedDays)
+            : dayOfWeek;
         setDrag((prev) =>
           prev &&
           prev.kind === "create" &&
           prev.pointerId === pointerId &&
           prev.dayOfWeek === dayOfWeek
-            ? { ...prev, currentRow: r }
+            ? { ...prev, currentRow: r, currentDayOfWeek: currentDay }
             : prev
         );
       };
@@ -162,19 +171,34 @@ export function useAvailabilityCalendarPointerHandlers({
           CONSULTATION_GRID_END_MINUTES,
           rowToMinutes(high + 1)
         );
-        if (endM > startM && canPlaceRef.current(dayOfWeek, startM, endM)) {
-          const prev = slotsRef.current;
-          const next = mergeAdjacentSlots([
-            ...prev,
-            {
+        if (endM > startM) {
+          const grid = daysGridRef.current;
+          const endDay =
+            multiDayCreate && grid
+              ? dayIndexFromClientX(ev.clientX, grid, orderedDays)
+              : dayOfWeek;
+          // Single-day drags still resolve to exactly [dayOfWeek].
+          const targetDays = daysBetween(dayOfWeek, endDay, orderedDays);
+
+          const created: AvailabilitySlot[] = [];
+          for (const day of targetDays) {
+            // Skip days where the range collides; the rest still land, so a
+            // multi-day sweep is not lost to one blocked column.
+            if (!canPlaceRef.current(day, startM, endM)) continue;
+            created.push({
               id: newTempAvailabilitySlotId(),
-              dayOfWeek,
+              dayOfWeek: day,
               startTime: minutesToHHmm(startM),
               endTime: minutesToHHmm(endM),
-            },
-          ]);
-          slotsRef.current = next;
-          onSlotsChange(next);
+            });
+          }
+
+          if (created.length > 0) {
+            const prev = slotsRef.current;
+            const next = mergeAdjacentSlots([...prev, ...created]);
+            slotsRef.current = next;
+            onSlotsChange(next);
+          }
         }
         endDrag();
       };
@@ -191,6 +215,7 @@ export function useAvailabilityCalendarPointerHandlers({
     },
     [
       readOnly,
+      multiDayCreate,
       clientYToRow,
       rowToMinutes,
       onSlotsChange,
@@ -198,6 +223,8 @@ export function useAvailabilityCalendarPointerHandlers({
       unlockCalendarTouchScroll,
       canPlaceRef,
       slotsRef,
+      orderedDays,
+      daysGridRef,
     ]
   );
 

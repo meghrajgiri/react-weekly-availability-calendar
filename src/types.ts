@@ -120,6 +120,15 @@ export interface AvailabilityCalendarProps {
   /** Style for snap-increment grid lines (default: "dashed") */
   gridLineStyle?: "solid" | "dashed" | "dotted";
   /**
+   * Allow a single drag-to-create gesture to span several day columns,
+   * creating the same time range on each day it covers.
+   *
+   * Opt-in (default `false`): with it enabled a diagonal drag creates slots on
+   * multiple days, which would otherwise be a surprising change for existing
+   * users, since horizontal movement during a create is currently ignored.
+   */
+  multiDayCreate?: boolean;
+  /**
    * BCP 47 locale tag (e.g. "de-DE") for day names and time labels.
    * When omitted, built-in English labels and formatting are used.
    * A custom `dayLabelFormat` function still takes precedence.
@@ -160,7 +169,13 @@ export interface AvailabilityCalendarProps {
 
 export type CreateDrag = {
   kind: "create";
+  /** The day the gesture started on. */
   dayOfWeek: DayOfWeek;
+  /**
+   * The day the pointer is currently over. Equals `dayOfWeek` unless
+   * `multiDayCreate` is enabled and the pointer has moved across columns.
+   */
+  currentDayOfWeek: DayOfWeek;
   startRow: number;
   currentRow: number;
   pointerId: number;

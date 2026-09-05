@@ -5,6 +5,7 @@ import { slotColorVars } from "./cn";
 import type { AvailabilitySlot } from "./types";
 import {
   clampGhostToGridArea,
+  daysBetween,
   formatClock,
   formatClockIntl,
   formatDurationLabel,
@@ -439,5 +440,48 @@ describe("formatClockIntl", () => {
     const a = formatClockIntl(555, "24", "de-DE").primary;
     const b = formatClockIntl(555, "24", "de-DE").primary;
     expect(a).toBe(b);
+  });
+});
+
+describe("daysBetween", () => {
+  const sundayFirst: AvailabilitySlot["dayOfWeek"][] = [0, 1, 2, 3, 4, 5, 6];
+  const mondayFirst: AvailabilitySlot["dayOfWeek"][] = [1, 2, 3, 4, 5, 6, 0];
+
+  it("returns a single day when start and end match", () => {
+    expect(daysBetween(3, 3, sundayFirst)).toEqual([3]);
+  });
+
+  it("spans forwards", () => {
+    expect(daysBetween(1, 4, sundayFirst)).toEqual([1, 2, 3, 4]);
+  });
+
+  it("spans backwards, still in display order", () => {
+    expect(daysBetween(4, 1, sundayFirst)).toEqual([1, 2, 3, 4]);
+  });
+
+  it("does not wrap: it works in display-order index space", () => {
+    // Monday-first week. Friday(5) -> Sunday(0) is the last three columns,
+    // not a wrap through the middle of the week.
+    expect(daysBetween(5, 0, mondayFirst)).toEqual([5, 6, 0]);
+  });
+
+  it("handles spans touching Sunday, which is falsy (the original's bug)", () => {
+    // The original gated the multi-day preview on
+    //   drag.startDayOfWeek && drag.currentDayOfWeek
+    // and Sunday is 0, so any span starting or ending on Sunday collapsed to a
+    // single-day preview while the commit still created the whole range —
+    // you saw one day and got several.
+    expect(daysBetween(0, 3, sundayFirst)).toEqual([0, 1, 2, 3]);
+    expect(daysBetween(3, 0, sundayFirst)).toEqual([0, 1, 2, 3]);
+    expect(daysBetween(0, 0, sundayFirst)).toEqual([0]);
+  });
+
+  it("covers the whole week end to end", () => {
+    expect(daysBetween(0, 6, sundayFirst)).toHaveLength(7);
+  });
+
+  it("degrades safely if a day is not in the ordered set", () => {
+    expect(daysBetween(2, 5, [2, 3])).toEqual([2]);
+    expect(daysBetween(9 as never, 3, sundayFirst)).toEqual([]);
   });
 });

@@ -255,6 +255,29 @@ export function formatDurationLabel(durationMinutes: number): string {
 }
 
 /**
+ * Returns every day in the inclusive span between two days, in display order.
+ *
+ * Works in `orderedDays` index space rather than raw day numbers, so a week
+ * starting on Monday spans Fri->Sun as three columns rather than wrapping.
+ * Handles dragging in either direction.
+ *
+ * @param startDay - Day the gesture began on.
+ * @param endDay - Day the pointer is currently over.
+ * @param orderedDays - Days in display order.
+ */
+export function daysBetween(
+  startDay: DayOfWeek,
+  endDay: DayOfWeek,
+  orderedDays: DayOfWeek[]
+): DayOfWeek[] {
+  const a = orderedDays.indexOf(startDay);
+  const b = orderedDays.indexOf(endDay);
+  // A day outside the ordered set would otherwise slice from -1.
+  if (a === -1 || b === -1) return a === -1 ? [] : [startDay];
+  return orderedDays.slice(Math.min(a, b), Math.max(a, b) + 1);
+}
+
+/**
  * Checks whether two time ranges overlap.
  * @param a - First range with `start` and `end` in minutes.
  * @param b - Second range with `start` and `end` in minutes.

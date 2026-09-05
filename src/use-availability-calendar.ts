@@ -2,7 +2,7 @@ import { useCallback, useMemo } from "react";
 
 import { ROW_HEIGHT_PX, getDayLabel, getOrderedDays } from "./constants";
 import { getRowTopBorderClassName } from "./row-styles";
-import { formatClock, formatClockIntl } from "./utils";
+import { daysBetween, formatClock, formatClockIntl } from "./utils";
 import { useAvailabilityCalendarPlacement } from "./use-placement";
 import { useAvailabilityCalendarPointerHandlers } from "./use-pointer-handlers";
 import { useConsultationGrid } from "./use-grid";
@@ -32,6 +32,7 @@ export function useAvailabilityCalendar({
   startDay = 0,
   dayLabelFormat = "short",
   gridLineStyle = "dashed",
+  multiDayCreate = false,
   locale,
   classNames: userClassNames,
   renderSlot,
@@ -59,6 +60,7 @@ export function useAvailabilityCalendar({
     handleSlotMovePointerDown,
   } = useAvailabilityCalendarPointerHandlers({
     readOnly,
+    multiDayCreate,
     snapMinutes,
     totalRows,
     orderedDays,
@@ -120,7 +122,12 @@ export function useAvailabilityCalendar({
   const createPreview =
     drag?.kind === "create"
       ? {
-          dayOfWeek: drag.dayOfWeek,
+          // Every day the preview covers. Computed as an explicit list rather
+          // than a truthiness check on the two endpoints: Sunday is 0, so
+          // `startDay && currentDay` would silently collapse any span touching
+          // Sunday back to a single day while the commit still created the
+          // full range.
+          days: daysBetween(drag.dayOfWeek, drag.currentDayOfWeek, orderedDays),
           top: Math.min(drag.startRow, drag.currentRow) * ROW_HEIGHT_PX,
           height:
             (Math.abs(drag.currentRow - drag.startRow) + 1) * ROW_HEIGHT_PX,

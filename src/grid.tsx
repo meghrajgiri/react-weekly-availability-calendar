@@ -146,15 +146,16 @@ export function AvailabilityCalendarGrid({
                     ))}
 
                     {/* Create preview */}
-                    {createPreview && createPreview.dayOfWeek === dayOfWeek && (
-                      <div
-                        className={cn("ac-create-preview", cx?.createPreview)}
-                        style={{
-                          top: createPreview.top,
-                          height: createPreview.height,
-                        }}
-                      />
-                    )}
+                    {createPreview &&
+                      createPreview.days.includes(dayOfWeek) && (
+                        <div
+                          className={cn("ac-create-preview", cx?.createPreview)}
+                          style={{
+                            top: createPreview.top,
+                            height: createPreview.height,
+                          }}
+                        />
+                      )}
 
                     {/* Blocked slots */}
                     {blockedSlots
