@@ -1,8 +1,5 @@
 import type { AvailabilitySlot, DayOfWeek } from "./types";
-import {
-  CONSULTATION_GRID_END_MINUTES,
-  CONSULTATION_GRID_START_MINUTES,
-} from "./constants";
+import { DAY_END_MINUTES, DAY_START_MINUTES } from "./constants";
 
 /** Generates a unique temporary ID for a newly created availability slot. */
 export function newTempAvailabilitySlotId(): string {
@@ -102,10 +99,7 @@ export function hhmmToMinutes(hhmm: string): number {
   const total =
     (Number.isFinite(h) ? h : 0) * 60 + (Number.isFinite(m) ? m : 0);
   if (!Number.isFinite(total)) return 0;
-  return Math.max(
-    CONSULTATION_GRID_START_MINUTES,
-    Math.min(CONSULTATION_GRID_END_MINUTES, total)
-  );
+  return Math.max(DAY_START_MINUTES, Math.min(DAY_END_MINUTES, total));
 }
 
 /**
@@ -128,7 +122,7 @@ export function minutesToHHmm(total: number): string {
 export function snapMinutesDown(
   m: number,
   snap: number,
-  originMinutes: number = CONSULTATION_GRID_START_MINUTES
+  originMinutes: number = DAY_START_MINUTES
 ): number {
   const rel = m - originMinutes;
   const snapped = Math.floor(rel / snap) * snap;
@@ -152,7 +146,7 @@ export function minutesToOffsetPx(
   minutes: number,
   snapMinutes: number,
   rowHeightPx: number,
-  gridStartMinutes: number = CONSULTATION_GRID_START_MINUTES
+  gridStartMinutes: number = DAY_START_MINUTES
 ): number {
   return ((minutes - gridStartMinutes) / snapMinutes) * rowHeightPx;
 }
@@ -241,7 +235,7 @@ export function formatClockIntl(
 ): { primary: string } {
   // End-of-day is a grid convention, not a clock reading — keep it verbatim so
   // it matches the non-Intl path.
-  if (minutes >= CONSULTATION_GRID_END_MINUTES) {
+  if (minutes >= DAY_END_MINUTES) {
     return formatClock(minutes, timeFormat);
   }
 

@@ -1,5 +1,5 @@
 import { cn } from "./cn";
-import { CONSULTATION_GRID_START_MINUTES } from "./constants";
+import { DAY_START_MINUTES } from "./constants";
 
 /**
  * Returns the CSS class name(s) for a grid row's top border.
@@ -16,7 +16,7 @@ export function getRowTopBorderClassName(
   gridLineStyle: "solid" | "dashed" | "dotted" = "dashed",
   hourLineClassName?: string,
   subHourLineClassName?: string,
-  gridStartMinutes: number = CONSULTATION_GRID_START_MINUTES
+  gridStartMinutes: number = DAY_START_MINUTES
 ): string {
   const mins = gridStartMinutes + rowIndex * snapMinutes;
   const isHourLine = mins % 60 === 0;
