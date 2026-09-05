@@ -41,6 +41,7 @@ jobs:
           fi
 
       - run: npm run typecheck
+      - run: npx playwright install chromium --with-deps
       - run: npm test
       - run: npm run build
       - run: npm publish --provenance --access public
