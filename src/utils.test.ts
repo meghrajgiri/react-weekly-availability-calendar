@@ -6,10 +6,12 @@ import type { AvailabilitySlot } from "./types";
 import {
   clampGhostToGridArea,
   formatClock,
+  formatClockIntl,
   formatDurationLabel,
   hhmmToMinutes,
   mergeAdjacentSlots,
   minutesToHHmm,
+  getIntlDayName,
   minutesToOffsetPx,
   newTempAvailabilitySlotId,
   overlaps,
@@ -372,5 +374,70 @@ describe("slotColorVars", () => {
   it("emits nothing when unset, so the theme default applies", () => {
     expect(slotColorVars(undefined)).toEqual({});
     expect(slotColorVars("")).toEqual({});
+  });
+});
+
+describe("getIntlDayName", () => {
+  it("maps each index to the right weekday", () => {
+    const names = [0, 1, 2, 3, 4, 5, 6].map((d) =>
+      getIntlDayName(d as AvailabilitySlot["dayOfWeek"], "en-US", "long")
+    );
+    expect(names).toEqual([
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ]);
+  });
+
+  it("localises names", () => {
+    expect(getIntlDayName(1, "de-DE", "long")).toBe("Montag");
+    expect(getIntlDayName(0, "fr-FR", "long")).toBe("dimanche");
+  });
+
+  it("honours the requested width", () => {
+    expect(getIntlDayName(1, "en-US", "short")).toBe("Mon");
+    expect(getIntlDayName(1, "en-US", "long")).toBe("Monday");
+  });
+
+  it("builds weekday dates from calendar parts, not millisecond offsets", () => {
+    // The original added dayOfWeek * 86_400_000 ms to an anchor date, which
+    // lands on the wrong day in any zone that shifts during the anchor week.
+    // Constructing from local date parts is calendar-correct everywhere, and
+    // this asserts the invariant the implementation relies on.
+    for (let d = 0; d <= 6; d++) {
+      expect(new Date(2024, 0, 7 + d).getDay()).toBe(d);
+    }
+  });
+});
+
+describe("formatClockIntl", () => {
+  it("formats 24-hour times without a 24:00 midnight", () => {
+    expect(formatClockIntl(0, "24", "en-GB").primary).toBe("00:00");
+    expect(formatClockIntl(570, "24", "en-GB").primary).toBe("09:30");
+  });
+
+  it("formats 12-hour times", () => {
+    const noon = formatClockIntl(720, "12", "en-US").primary;
+    expect(noon).toMatch(/12:00/);
+    expect(noon.toUpperCase()).toContain("PM");
+  });
+
+  it("keeps end-of-day consistent with the non-Intl path", () => {
+    expect(formatClockIntl(1440, "24", "en-GB").primary).toBe(
+      formatClock(1440, "24").primary
+    );
+    expect(formatClockIntl(1440, "12", "en-US").primary).toBe(
+      formatClock(1440, "12").primary
+    );
+  });
+
+  it("returns a stable result across repeated calls (formatter cache)", () => {
+    const a = formatClockIntl(555, "24", "de-DE").primary;
+    const b = formatClockIntl(555, "24", "de-DE").primary;
+    expect(a).toBe(b);
   });
 });

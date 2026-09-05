@@ -119,6 +119,12 @@ export interface AvailabilityCalendarProps {
   dayLabelFormat?: "short" | "long" | ((day: DayOfWeek) => string);
   /** Style for snap-increment grid lines (default: "dashed") */
   gridLineStyle?: "solid" | "dashed" | "dotted";
+  /**
+   * BCP 47 locale tag (e.g. "de-DE") for day names and time labels.
+   * When omitted, built-in English labels and formatting are used.
+   * A custom `dayLabelFormat` function still takes precedence.
+   */
+  locale?: string;
 
   /** Theme overrides for colors */
   theme?: CalendarTheme;

@@ -1,4 +1,5 @@
 import type { DayOfWeek } from "./types";
+import { getIntlDayName } from "./utils";
 
 /** Short day-of-week labels (e.g. "Sun", "Mon"). */
 export const DAY_SHORT: Record<DayOfWeek, string> = {
@@ -31,15 +32,23 @@ export function getOrderedDays(startDay: DayOfWeek): DayOfWeek[] {
 }
 
 /**
- * Returns the display label for a day, based on the chosen format.
+ * Returns the display label for a day.
+ *
+ * Resolution order: a custom function always wins; otherwise a `locale`
+ * selects `Intl` weekday names at the requested width; otherwise the built-in
+ * English tables are used.
+ *
  * @param day - Day of the week.
  * @param format - "short", "long", or a custom function.
+ * @param locale - Optional BCP 47 tag. Applies to both widths.
  */
 export function getDayLabel(
   day: DayOfWeek,
-  format: "short" | "long" | ((d: DayOfWeek) => string)
+  format: "short" | "long" | ((d: DayOfWeek) => string),
+  locale?: string
 ): string {
   if (typeof format === "function") return format(day);
+  if (locale) return getIntlDayName(day, locale, format);
   return format === "long" ? DAY_LONG[day] : DAY_SHORT[day];
 }
 
