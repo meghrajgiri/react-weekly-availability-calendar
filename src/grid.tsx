@@ -1,5 +1,5 @@
 import { XIcon } from "./icons";
-import { cn } from "./cn";
+import { cn, slotColorVars } from "./cn";
 import { CALENDAR_HEADER_ROW_PX, ROW_HEIGHT_PX } from "./constants";
 import { formatClock, formatDurationLabel, hhmmToMinutes } from "./utils";
 
@@ -283,6 +283,7 @@ export function AvailabilityCalendarGrid({
                             style={{
                               top,
                               height: slotHeight,
+                              ...slotColorVars(s.color),
                             }}
                             onPointerDown={(e) =>
                               handleSlotMovePointerDown(s, e)

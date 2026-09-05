@@ -1,6 +1,6 @@
 import { createPortal } from "react-dom";
 
-import { cn } from "./cn";
+import { cn, slotColorVars } from "./cn";
 import {
   CALENDAR_HEADER_ROW_PX,
   MOVE_GHOST_WIDTH_RATIO,
@@ -114,6 +114,7 @@ export function AvailabilityCalendarMoveGhost({
             top: ghostTop,
             width: ghostWidthPx,
             height: drag.heightPx,
+            ...slotColorVars(moveGhostSlot.color),
           }}
         >
           {customContent ?? defaultContent}

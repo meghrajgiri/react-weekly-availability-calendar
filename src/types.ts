@@ -10,6 +10,12 @@ export interface AvailabilitySlot {
   startTime: string;
   /** End time in "HH:mm" format (24-hour) */
   endTime: string;
+  /**
+   * Optional per-slot background colour (any CSS colour value). Overrides
+   * `theme.slotBackground` for this slot only, and follows the slot into the
+   * drag ghost.
+   */
+  color?: string;
 }
 
 export interface BlockedSlot {
