@@ -1,17 +1,32 @@
 # react-weekly-availability-calendar
 
-A customizable, draggable weekly availability calendar component for React. Create, resize, and move time slots with zero external styling dependencies.
+A customizable, draggable weekly availability calendar component for React.
+Create, resize, and move time slots with zero external styling dependencies.
 
-<img width="992" height="645" alt="image" src="https://github.com/user-attachments/assets/c737831d-cd82-46bf-b870-01b179ac6f43" />
+[![npm](https://img.shields.io/npm/v/react-weekly-availability-calendar?color=4f46e5)](https://www.npmjs.com/package/react-weekly-availability-calendar)
+[![npm downloads](https://img.shields.io/npm/dm/react-weekly-availability-calendar?color=4f46e5)](https://www.npmjs.com/package/react-weekly-availability-calendar)
+[![license](https://img.shields.io/npm/l/react-weekly-availability-calendar?color=4f46e5)](./LICENSE)
+
+### → [Try the live demo](https://ui.meghrajgiri.com/availability-calendar/)
+
+Dragging is the whole point, so a screenshot undersells it. Every example on
+the demo page is interactive — create a slot by dragging on empty space, move
+one by dragging it, resize it by its edges.
+
+[<img width="992" alt="Weekly availability calendar with draggable time slots" src="https://github.com/user-attachments/assets/c737831d-cd82-46bf-b870-01b179ac6f43" />](https://ui.meghrajgiri.com/availability-calendar/)
 
 ## Features
 
 - Drag to create, resize, and move availability slots
 - Blocked time slots with striped overlay
+- Multi-day create: one drag lays the same range across several days
+- Per-slot colors, plus a built-in `darkTheme` preset
+- Locale-aware day names and times via `Intl`
+- Undo / redo through the `useAvailabilityHistory` hook
 - Fully customizable via `theme`, `classNames`, or render props
 - Zero external dependencies (only `react` and `react-dom` as peer deps)
 - Styles auto-injected at runtime — no CSS import needed
-- SSR safe
+- SSR safe, and ships a `"use client"` directive for the Next.js App Router
 - TypeScript first
 
 ## Install
@@ -287,6 +302,12 @@ interface BlockedSlot {
   label: string;
 }
 ```
+
+## Links
+
+- **[Live demo and docs](https://ui.meghrajgiri.com/availability-calendar/)**
+- [Changelog](./CHANGELOG.md)
+- [npm](https://www.npmjs.com/package/react-weekly-availability-calendar)
 
 ## Notes
 

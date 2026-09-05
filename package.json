@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/meghrajgiri/react-weekly-availability-calendar"
   },
-  "homepage": "https://github.com/meghrajgiri/react-weekly-availability-calendar#readme",
+  "homepage": "https://ui.meghrajgiri.com/availability-calendar/",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
