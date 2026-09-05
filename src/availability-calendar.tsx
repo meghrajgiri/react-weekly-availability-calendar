@@ -37,6 +37,9 @@ function themeToVars(theme: CalendarTheme | undefined): CSSProperties {
   if (theme.blockedStripeColor)
     vars["--ac-blocked-stripe"] = theme.blockedStripeColor;
 
+  if (theme.disabledStripeColor)
+    vars["--ac-disabled-stripe"] = theme.disabledStripeColor;
+
   if (theme.previewBackground)
     vars["--ac-preview-bg"] = theme.previewBackground;
   if (theme.previewBorderColor)

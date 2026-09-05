@@ -99,6 +99,19 @@ describe("axe", () => {
     expect(await violations(await settled())).toEqual([]);
   });
 
+  it("reports no violations with disabled days", async () => {
+    render(
+      <Harness
+        disabledDays={[0, 6]}
+        slots={[
+          { id: 1, dayOfWeek: 0, startTime: "10:00", endTime: "11:00" },
+          { id: 2, dayOfWeek: 1, startTime: "09:00", endTime: "12:00" },
+        ]}
+      />
+    );
+    expect(await violations(await settled())).toEqual([]);
+  });
+
   it("reports no violations with onSlotClick and custom rendering", async () => {
     render(
       <Harness

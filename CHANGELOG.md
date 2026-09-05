@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-09-06
+
+### Added
+
+- `disabledDays` marks days that cannot be edited, e.g. `[0, 6]` for
+  weekends. Nothing can be created, moved, resized or removed there by
+  pointer or keyboard. Existing slots on a disabled day still render, so the
+  data stays visible and is never rewritten; they simply lose their controls,
+  and the column is striped and marked `aria-disabled`.
+- `minSlotMinutes` and `maxSlotMinutes` constrain slot length. Gestures are
+  clamped rather than discarded: a drag shorter than the minimum grows to
+  meet it where there is room, and one longer than the maximum is trimmed, so
+  an imprecise gesture still produces a slot instead of nothing. Keyboard
+  resizing stops at the same limits. The minimum can never fall below
+  `snapMinutes`, which is the shortest slot the grid can represent.
+- `theme.disabledStripeColor` for styling disabled columns.
+
 ## [1.4.1] - 2026-09-06
 
 ### Fixed
@@ -241,7 +258,8 @@ No runtime changes — the published bundle is byte-identical to 1.2.0.
 
 - Initial public releases.
 
-[Unreleased]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.4.1...HEAD
+[Unreleased]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.4.1...v1.5.0
 [1.4.1]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.2.2...v1.3.0

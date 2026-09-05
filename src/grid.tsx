@@ -29,6 +29,7 @@ export function AvailabilityCalendarGrid({
     readOnly,
     drag,
     totalRows,
+    disabledDays,
     startMinutes,
     endMinutes,
     rowTopBorderClass,
@@ -148,275 +149,290 @@ export function AvailabilityCalendarGrid({
                   />
                 ))}
               </div>
-              {orderedDays.map((dayOfWeek: DayOfWeek, colIndex) => (
-                <div
-                  key={dayOfWeek}
-                  className={cn("ac-day-column", cx?.dayColumn)}
-                >
+              {orderedDays.map((dayOfWeek: DayOfWeek, colIndex) => {
+                const dayDisabled = disabledDays.has(dayOfWeek);
+                // A disabled day is inert: nothing can be created, moved,
+                // resized or removed there, though existing slots still show.
+                const inert = readOnly || dayDisabled;
+                return (
                   <div
-                    data-day-column-body
-                    // A labelled group, deliberately not a control. It contains
-                    // the slot buttons, and nesting interactive elements
-                    // confuses screen readers and keyboard focus. Creation is
-                    // handled by the sibling button below.
-                    role="group"
-                    aria-label={dayLabels[colIndex]}
-                    className={cn(
-                      "ac-day-body",
-                      !readOnly &&
-                        (drag?.kind === "move"
-                          ? "ac-day-body--grabbing"
-                          : "ac-day-body--crosshair"),
-                      drag?.kind === "create" && "ac-day-body--touch-none"
-                    )}
-                    style={{ height: totalRows * ROW_HEIGHT_PX }}
-                    onPointerDown={(e) => handleGridPointerDown(dayOfWeek, e)}
+                    key={dayOfWeek}
+                    className={cn("ac-day-column", cx?.dayColumn)}
                   >
-                    {!readOnly && (
-                      <button
-                        type="button"
-                        data-add-slot
-                        className="ac-add-slot"
-                        // Hidden until focused, so it is available to keyboard
-                        // users without adding visual noise for everyone else.
-                        onClick={() => addSlotToDay(dayOfWeek)}
-                        onPointerDown={(e) => e.stopPropagation()}
-                      >
-                        {`Add availability to ${dayLabels[colIndex]}`}
-                      </button>
-                    )}
-                    {/* Create preview */}
-                    {createPreview &&
-                      createPreview.days.includes(dayOfWeek) && (
-                        <div
-                          className={cn("ac-create-preview", cx?.createPreview)}
-                          style={{
-                            top: createPreview.top,
-                            height: createPreview.height,
-                          }}
-                        />
+                    <div
+                      data-day-column-body
+                      // A labelled group, deliberately not a control. It contains
+                      // the slot buttons, and nesting interactive elements
+                      // confuses screen readers and keyboard focus. Creation is
+                      // handled by the sibling button below.
+                      role="group"
+                      aria-label={
+                        dayDisabled
+                          ? `${dayLabels[colIndex]}, unavailable`
+                          : dayLabels[colIndex]
+                      }
+                      aria-disabled={dayDisabled || undefined}
+                      className={cn(
+                        "ac-day-body",
+                        dayDisabled && "ac-day-body--disabled",
+                        !inert &&
+                          (drag?.kind === "move"
+                            ? "ac-day-body--grabbing"
+                            : "ac-day-body--crosshair"),
+                        drag?.kind === "create" && "ac-day-body--touch-none"
                       )}
-
-                    {/* Blocked slots */}
-                    {blockedSlots
-                      .filter((b) => b.dayOfWeek === dayOfWeek)
-                      .map((b, blockedIndex) => {
-                        // Clip to the visible window rather than letting the
-                        // block spill outside it. Data is never modified — a
-                        // slot outside the range is simply not drawn.
-                        const sm = Math.max(
-                          startMinutes,
-                          hhmmToMinutes(b.startTime)
-                        );
-                        const em = Math.min(
-                          endMinutes,
-                          hhmmToMinutes(b.endTime)
-                        );
-                        if (em <= sm) return null;
-                        const top = minutesToPx(sm);
-                        const h = minutesToPx(em) - minutesToPx(sm);
-                        if (h <= 0) return null;
-
-                        const defaultContent = (
-                          <span
+                      style={{ height: totalRows * ROW_HEIGHT_PX }}
+                      onPointerDown={(e) => handleGridPointerDown(dayOfWeek, e)}
+                    >
+                      {!inert && (
+                        <button
+                          type="button"
+                          data-add-slot
+                          className="ac-add-slot"
+                          // Hidden until focused, so it is available to keyboard
+                          // users without adding visual noise for everyone else.
+                          onClick={() => addSlotToDay(dayOfWeek)}
+                          onPointerDown={(e) => e.stopPropagation()}
+                        >
+                          {`Add availability to ${dayLabels[colIndex]}`}
+                        </button>
+                      )}
+                      {/* Create preview */}
+                      {createPreview &&
+                        createPreview.days.includes(dayOfWeek) && (
+                          <div
                             className={cn(
-                              "ac-blocked-label",
-                              h >= ROW_HEIGHT_PX * 2
-                                ? "ac-blocked-label--sm"
-                                : "ac-blocked-label--xs"
+                              "ac-create-preview",
+                              cx?.createPreview
                             )}
-                          >
-                            {b.label}
-                          </span>
-                        );
-
-                        return (
-                          <div
-                            key={`blocked-${dayOfWeek}-${blockedIndex}`}
-                            className={cn("ac-blocked-slot", cx?.blockedSlot)}
                             style={{
-                              top,
-                              height: Math.max(h, ROW_HEIGHT_PX),
+                              top: createPreview.top,
+                              height: createPreview.height,
                             }}
-                          >
-                            {renderBlockedSlot
-                              ? renderBlockedSlot(b)
-                              : defaultContent}
-                          </div>
-                        );
-                      })}
+                          />
+                        )}
 
-                    {/* Availability slots */}
-                    {slots
-                      .filter((s) => s.dayOfWeek === dayOfWeek)
-                      .map((s) => {
-                        const sm = hhmmToMinutes(s.startTime);
-                        const em = hhmmToMinutes(s.endTime);
-                        // Geometry is clipped to the visible window; the labels
-                        // below still report the slot's real times, so a
-                        // partially visible slot never misstates its data.
-                        const visibleStart = Math.max(startMinutes, sm);
-                        const visibleEnd = Math.min(endMinutes, em);
-                        if (visibleEnd <= visibleStart) return null;
-                        const top = minutesToPx(visibleStart);
-                        const h =
-                          minutesToPx(visibleEnd) - minutesToPx(visibleStart);
-                        const dur = em - sm;
-                        const startLbl = formatTime(sm);
-                        const endLbl = formatTime(em);
-                        const slotHeight = Math.max(h, ROW_HEIGHT_PX);
-                        const isCompactSlot = slotHeight < ROW_HEIGHT_PX * 2;
-                        const durationLabel = formatDurationLabel(dur);
+                      {/* Blocked slots */}
+                      {blockedSlots
+                        .filter((b) => b.dayOfWeek === dayOfWeek)
+                        .map((b, blockedIndex) => {
+                          // Clip to the visible window rather than letting the
+                          // block spill outside it. Data is never modified — a
+                          // slot outside the range is simply not drawn.
+                          const sm = Math.max(
+                            startMinutes,
+                            hhmmToMinutes(b.startTime)
+                          );
+                          const em = Math.min(
+                            endMinutes,
+                            hhmmToMinutes(b.endTime)
+                          );
+                          if (em <= sm) return null;
+                          const top = minutesToPx(sm);
+                          const h = minutesToPx(em) - minutesToPx(sm);
+                          if (h <= 0) return null;
 
-                        const defaultContent = isCompactSlot ? (
-                          <div className="ac-slot-content-compact">
-                            <p>
-                              {startLbl} – {endLbl}{" "}
-                              <span className="ac-slot-duration">
-                                {durationLabel}
-                              </span>
-                            </p>
-                          </div>
-                        ) : (
-                          <>
-                            <div className="ac-slot-top-row">
-                              <span className="ac-slot-time">{startLbl}</span>
+                          const defaultContent = (
+                            <span
+                              className={cn(
+                                "ac-blocked-label",
+                                h >= ROW_HEIGHT_PX * 2
+                                  ? "ac-blocked-label--sm"
+                                  : "ac-blocked-label--xs"
+                              )}
+                            >
+                              {b.label}
+                            </span>
+                          );
+
+                          return (
+                            <div
+                              key={`blocked-${dayOfWeek}-${blockedIndex}`}
+                              className={cn("ac-blocked-slot", cx?.blockedSlot)}
+                              style={{
+                                top,
+                                height: Math.max(h, ROW_HEIGHT_PX),
+                              }}
+                            >
+                              {renderBlockedSlot
+                                ? renderBlockedSlot(b)
+                                : defaultContent}
                             </div>
-                            <div className="ac-slot-bottom-row">
-                              <span className="ac-slot-time">{endLbl}</span>
-                              <span className="ac-slot-duration">
-                                {durationLabel}
-                              </span>
+                          );
+                        })}
+
+                      {/* Availability slots */}
+                      {slots
+                        .filter((s) => s.dayOfWeek === dayOfWeek)
+                        .map((s) => {
+                          const sm = hhmmToMinutes(s.startTime);
+                          const em = hhmmToMinutes(s.endTime);
+                          // Geometry is clipped to the visible window; the labels
+                          // below still report the slot's real times, so a
+                          // partially visible slot never misstates its data.
+                          const visibleStart = Math.max(startMinutes, sm);
+                          const visibleEnd = Math.min(endMinutes, em);
+                          if (visibleEnd <= visibleStart) return null;
+                          const top = minutesToPx(visibleStart);
+                          const h =
+                            minutesToPx(visibleEnd) - minutesToPx(visibleStart);
+                          const dur = em - sm;
+                          const startLbl = formatTime(sm);
+                          const endLbl = formatTime(em);
+                          const slotHeight = Math.max(h, ROW_HEIGHT_PX);
+                          const isCompactSlot = slotHeight < ROW_HEIGHT_PX * 2;
+                          const durationLabel = formatDurationLabel(dur);
+
+                          const defaultContent = isCompactSlot ? (
+                            <div className="ac-slot-content-compact">
+                              <p>
+                                {startLbl} – {endLbl}{" "}
+                                <span className="ac-slot-duration">
+                                  {durationLabel}
+                                </span>
+                              </p>
                             </div>
-                          </>
-                        );
+                          ) : (
+                            <>
+                              <div className="ac-slot-top-row">
+                                <span className="ac-slot-time">{startLbl}</span>
+                              </div>
+                              <div className="ac-slot-bottom-row">
+                                <span className="ac-slot-time">{endLbl}</span>
+                                <span className="ac-slot-duration">
+                                  {durationLabel}
+                                </span>
+                              </div>
+                            </>
+                          );
 
-                        const customContent = renderSlot
-                          ? renderSlot(s, {
-                              startLabel: startLbl,
-                              endLabel: endLbl,
-                              durationLabel,
-                              isCompact: isCompactSlot,
-                            })
-                          : null;
+                          const customContent = renderSlot
+                            ? renderSlot(s, {
+                                startLabel: startLbl,
+                                endLabel: endLbl,
+                                durationLabel,
+                                isCompact: isCompactSlot,
+                              })
+                            : null;
 
-                        const handleSlotKeyboardActivate = onSlotClick
-                          ? (e: React.KeyboardEvent<HTMLDivElement>) => {
-                              // Only fire when the slot itself is focused —
-                              // Enter on the inner remove button must
-                              // activate the button.
-                              if (e.target !== e.currentTarget) return;
-                              if (e.key === "Enter" || e.key === " ") {
-                                e.preventDefault();
-                                onSlotClick(s, e.nativeEvent);
+                          const handleSlotKeyboardActivate = onSlotClick
+                            ? (e: React.KeyboardEvent<HTMLDivElement>) => {
+                                // Only fire when the slot itself is focused —
+                                // Enter on the inner remove button must
+                                // activate the button.
+                                if (e.target !== e.currentTarget) return;
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  onSlotClick(s, e.nativeEvent);
+                                }
                               }
-                            }
-                          : undefined;
-                        return (
-                          <div
-                            key={String(s.id)}
-                            data-availability-block
-                            // Focusable whenever it can be acted on: edited,
-                            // or activated via onSlotClick in readOnly mode.
-                            tabIndex={
-                              !readOnly || handleSlotKeyboardActivate
-                                ? 0
-                                : undefined
-                            }
-                            // An editable slot contains its own remove button,
-                            // so it is a group of controls, not a control —
-                            // nesting interactive elements confuses screen
-                            // readers and keyboard focus. In readOnly mode
-                            // there are no children to nest, so the more
-                            // descriptive button role applies.
-                            role={
-                              readOnly
-                                ? handleSlotKeyboardActivate
-                                  ? "button"
+                            : undefined;
+                          return (
+                            <div
+                              key={String(s.id)}
+                              data-availability-block
+                              // Focusable whenever it can be acted on: edited,
+                              // or activated via onSlotClick in readOnly mode.
+                              tabIndex={
+                                !inert || handleSlotKeyboardActivate
+                                  ? 0
                                   : undefined
-                                : "group"
-                            }
-                            aria-label={
-                              !readOnly || handleSlotKeyboardActivate
-                                ? `${dayLabels[colIndex]}, ${startLbl} to ${endLbl}.` +
-                                  (readOnly
-                                    ? ""
-                                    : " Arrow keys move, Shift with arrows resizes, Delete removes.")
-                                : undefined
-                            }
-                            className={cn(
-                              "ac-slot",
-                              !readOnly && "ac-slot--interactive",
-                              isCompactSlot
-                                ? "ac-slot--compact"
-                                : "ac-slot--tall",
-                              drag?.kind === "move" &&
-                                drag.slotId === s.id &&
-                                "ac-slot--hidden",
-                              cx?.slot
-                            )}
-                            style={{
-                              top,
-                              height: slotHeight,
-                              ...slotColorVars(s.color),
-                            }}
-                            onPointerDown={(e) =>
-                              handleSlotMovePointerDown(s, e)
-                            }
-                            onKeyDown={(e) => {
-                              // Editing shortcuts win; activation only fires
-                              // when nothing else claimed the key.
-                              if (handleSlotKeyDown(s, e)) {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                return;
                               }
-                              handleSlotKeyboardActivate?.(e);
-                            }}
-                          >
-                            {!readOnly && (
-                              <>
-                                <button
-                                  type="button"
-                                  className={cn(
-                                    "ac-slot-remove-btn",
-                                    isCompactSlot
-                                      ? "ac-slot-remove-btn--compact"
-                                      : "ac-slot-remove-btn--tall",
-                                    cx?.slotRemoveButton
-                                  )}
-                                  aria-label="Remove slot"
-                                  onPointerDown={(ev) => ev.stopPropagation()}
-                                  onClick={() => removeSlot(s.id)}
-                                >
-                                  <XIcon />
-                                </button>
-                                <div
-                                  data-slot-resize="start"
-                                  // Pointer-only until keyboard resize exists.
-                                  aria-hidden
-                                  className="ac-slot-resize ac-slot-resize--start"
-                                  onPointerDown={(ev) =>
-                                    handleResizePointerDown(s, "start", ev)
-                                  }
-                                />
-                                <div
-                                  data-slot-resize="end"
-                                  aria-hidden
-                                  className="ac-slot-resize ac-slot-resize--end"
-                                  onPointerDown={(ev) =>
-                                    handleResizePointerDown(s, "end", ev)
-                                  }
-                                />
-                              </>
-                            )}
-                            {customContent ?? defaultContent}
-                          </div>
-                        );
-                      })}
+                              // An editable slot contains its own remove button,
+                              // so it is a group of controls, not a control —
+                              // nesting interactive elements confuses screen
+                              // readers and keyboard focus. In readOnly mode
+                              // there are no children to nest, so the more
+                              // descriptive button role applies.
+                              role={
+                                inert
+                                  ? handleSlotKeyboardActivate
+                                    ? "button"
+                                    : undefined
+                                  : "group"
+                              }
+                              aria-label={
+                                !inert || handleSlotKeyboardActivate
+                                  ? `${dayLabels[colIndex]}, ${startLbl} to ${endLbl}.` +
+                                    (inert
+                                      ? ""
+                                      : " Arrow keys move, Shift with arrows resizes, Delete removes.")
+                                  : undefined
+                              }
+                              className={cn(
+                                "ac-slot",
+                                !inert && "ac-slot--interactive",
+                                isCompactSlot
+                                  ? "ac-slot--compact"
+                                  : "ac-slot--tall",
+                                drag?.kind === "move" &&
+                                  drag.slotId === s.id &&
+                                  "ac-slot--hidden",
+                                cx?.slot
+                              )}
+                              style={{
+                                top,
+                                height: slotHeight,
+                                ...slotColorVars(s.color),
+                              }}
+                              onPointerDown={(e) =>
+                                handleSlotMovePointerDown(s, e)
+                              }
+                              onKeyDown={(e) => {
+                                // Editing shortcuts win; activation only fires
+                                // when nothing else claimed the key.
+                                if (!inert && handleSlotKeyDown(s, e)) {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  return;
+                                }
+                                handleSlotKeyboardActivate?.(e);
+                              }}
+                            >
+                              {!inert && (
+                                <>
+                                  <button
+                                    type="button"
+                                    className={cn(
+                                      "ac-slot-remove-btn",
+                                      isCompactSlot
+                                        ? "ac-slot-remove-btn--compact"
+                                        : "ac-slot-remove-btn--tall",
+                                      cx?.slotRemoveButton
+                                    )}
+                                    aria-label="Remove slot"
+                                    onPointerDown={(ev) => ev.stopPropagation()}
+                                    onClick={() => removeSlot(s.id)}
+                                  >
+                                    <XIcon />
+                                  </button>
+                                  <div
+                                    data-slot-resize="start"
+                                    // Pointer-only until keyboard resize exists.
+                                    aria-hidden
+                                    className="ac-slot-resize ac-slot-resize--start"
+                                    onPointerDown={(ev) =>
+                                      handleResizePointerDown(s, "start", ev)
+                                    }
+                                  />
+                                  <div
+                                    data-slot-resize="end"
+                                    aria-hidden
+                                    className="ac-slot-resize ac-slot-resize--end"
+                                    onPointerDown={(ev) =>
+                                      handleResizePointerDown(s, "end", ev)
+                                    }
+                                  />
+                                </>
+                              )}
+                              {customContent ?? defaultContent}
+                            </div>
+                          );
+                        })}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>

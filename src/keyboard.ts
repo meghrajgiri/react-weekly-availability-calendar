@@ -38,23 +38,34 @@ export function shiftSlotTime(
   };
 }
 
+/** Duration limits applied on top of the grid window. */
+export interface DurationLimits {
+  minSlotMinutes?: number;
+  maxSlotMinutes?: number;
+}
+
 /**
  * Grows or shrinks a slot from its end edge.
  *
- * Never shrinks below one snap increment, and never extends past the window.
- * Returns `null` when neither is possible, so the caller can stay quiet.
+ * Clamps to the configured duration limits and the grid window, never going
+ * below one snap increment. Returns `null` when the edge is already at a limit,
+ * so the caller can stay quiet rather than emitting a no-op change.
  */
 export function resizeSlotEnd(
   slot: AvailabilitySlot,
   deltaMinutes: number,
   snapMinutes: number,
-  bounds: GridBounds
+  bounds: GridBounds & DurationLimits
 ): { startTime: string; endTime: string } | null {
   const start = hhmmToMinutes(slot.startTime);
   const end = hhmmToMinutes(slot.endTime);
 
+  const min = Math.max(snapMinutes, bounds.minSlotMinutes ?? snapMinutes);
+  const max = bounds.maxSlotMinutes ?? Number.POSITIVE_INFINITY;
+
   let nextEnd = end + deltaMinutes;
-  if (nextEnd < start + snapMinutes) nextEnd = start + snapMinutes;
+  if (nextEnd < start + min) nextEnd = start + min;
+  if (nextEnd > start + max) nextEnd = start + max;
   if (nextEnd > bounds.endMinutes) nextEnd = bounds.endMinutes;
   if (nextEnd === end) return null;
 

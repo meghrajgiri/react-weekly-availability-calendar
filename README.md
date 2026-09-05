@@ -126,6 +126,7 @@ from the TypeScript types, so it never drifts from the source:
 | **Range**        | `startHour`, `endHour` — show only the hours you schedule in          |
 | **Week**         | `startDay`, `dayLabelFormat`, `locale`, `gridLineStyle`               |
 | **Behaviour**    | `readOnly`, `multiDayCreate`, `onSlotClick`, `blockedSlots`           |
+| **Limits**       | `disabledDays`, `minSlotMinutes`, `maxSlotMinutes`                    |
 | **Styling**      | `theme` (plus the `darkTheme` preset), `classNames`, per-slot `color` |
 | **Render props** | `renderSlot`, `renderBlockedSlot`                                     |
 | **Hook**         | `useAvailabilityHistory` for undo / redo                              |

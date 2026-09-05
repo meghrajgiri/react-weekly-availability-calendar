@@ -41,6 +41,9 @@ export function useAvailabilityCalendar({
   dayLabelFormat = "short",
   gridLineStyle = "dashed",
   multiDayCreate = false,
+  disabledDays,
+  minSlotMinutes,
+  maxSlotMinutes,
   startHour = DEFAULT_START_HOUR,
   endHour = DEFAULT_END_HOUR,
   locale,
@@ -49,6 +52,15 @@ export function useAvailabilityCalendar({
   renderBlockedSlot,
   onSlotClick,
 }: AvailabilityCalendarProps) {
+  // Stable identities so the placement callbacks are not rebuilt every render.
+  const disabledDaySet = useMemo(
+    () => new Set(disabledDays ?? []),
+    [disabledDays]
+  );
+  // A slot can never be shorter than one row, whatever the caller asks for.
+  const minDuration = Math.max(snapMinutes, minSlotMinutes ?? snapMinutes);
+  const maxDuration = maxSlotMinutes ?? Number.POSITIVE_INFINITY;
+
   const { startMinutes, endMinutes } = useMemo(
     () => resolveHourRange(startHour, endHour),
     [startHour, endHour]
@@ -64,6 +76,9 @@ export function useAvailabilityCalendar({
     blockedSlots,
     startMinutes,
     endMinutes,
+    disabledDays: disabledDaySet,
+    minSlotMinutes: minDuration,
+    maxSlotMinutes: maxDuration,
   });
 
   const {
@@ -80,6 +95,9 @@ export function useAvailabilityCalendar({
     multiDayCreate,
     startMinutes,
     endMinutes,
+    disabledDays: disabledDaySet,
+    minSlotMinutes: minDuration,
+    maxSlotMinutes: maxDuration,
     snapMinutes,
     totalRows,
     orderedDays,
@@ -96,6 +114,9 @@ export function useAvailabilityCalendar({
       readOnly,
       snapMinutes,
       bounds: { startMinutes, endMinutes },
+      disabledDays: disabledDaySet,
+      minSlotMinutes: minDuration,
+      maxSlotMinutes: maxDuration,
       orderedDays,
       slots,
       blockedSlots,
@@ -193,6 +214,7 @@ export function useAvailabilityCalendar({
     calendarScrollRef,
     daysGridRef,
     totalRows,
+    disabledDays: disabledDaySet,
     startMinutes,
     endMinutes,
     rowToMinutes,

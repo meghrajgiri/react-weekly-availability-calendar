@@ -30,6 +30,9 @@ interface UseAvailabilityCalendarPointerHandlersParams {
   /** Visible window, in minutes since midnight. */
   startMinutes: number;
   endMinutes: number;
+  disabledDays: ReadonlySet<DayOfWeek>;
+  minSlotMinutes: number;
+  maxSlotMinutes: number;
   snapMinutes: 10 | 30 | 60;
   totalRows: number;
   orderedDays: DayOfWeek[];
@@ -60,6 +63,9 @@ export function useAvailabilityCalendarPointerHandlers({
   multiDayCreate,
   startMinutes,
   endMinutes,
+  disabledDays,
+  minSlotMinutes,
+  maxSlotMinutes,
   snapMinutes,
   totalRows,
   orderedDays,
@@ -101,6 +107,7 @@ export function useAvailabilityCalendarPointerHandlers({
   const handleGridPointerDown = useCallback(
     (dayOfWeek: DayOfWeek, e: React.PointerEvent<HTMLDivElement>) => {
       if (readOnly) return;
+      if (disabledDays.has(dayOfWeek)) return;
       if (e.pointerType === "mouse" && e.button !== 0) return;
 
       const rawTarget = e.target;
@@ -168,7 +175,14 @@ export function useAvailabilityCalendarPointerHandlers({
         const low = Math.min(startRow, row);
         const high = Math.max(startRow, row);
         const startM = rowToMinutes(low);
-        const endM = Math.min(endMinutes, rowToMinutes(high + 1));
+        // Clamp the gesture into the allowed range instead of discarding it:
+        // a flick shorter than the minimum grows, an over-long sweep trims.
+        const rawEnd = Math.min(endMinutes, rowToMinutes(high + 1));
+        const clamped = Math.min(
+          Math.max(rawEnd - startM, minSlotMinutes),
+          maxSlotMinutes
+        );
+        const endM = Math.min(endMinutes, startM + clamped);
         if (endM > startM) {
           const grid = daysGridRef.current;
           const endDay =
@@ -215,6 +229,9 @@ export function useAvailabilityCalendarPointerHandlers({
       readOnly,
       multiDayCreate,
       endMinutes,
+      disabledDays,
+      minSlotMinutes,
+      maxSlotMinutes,
       clientYToRow,
       rowToMinutes,
       onSlotsChange,
