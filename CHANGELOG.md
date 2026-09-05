@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-09-06
+
+### Added
+
+- `toStorageSlots` and `fromStorageSlots` for stores that reject hour 24.
+  A slot running to midnight ends at `"24:00"`, which is deliberate and matches
+  ISO 8601 — and is the only representation that round-trips. `"00:00"` parses
+  back to minute 0, putting the end before the start so the slot is rejected and
+  disappears; `"23:59"` loses a minute. These helpers convert at the storage
+  boundary instead, where the string is known to be an end time.
+- `DAY_START_MINUTES` and `DAY_END_MINUTES`, replacing the
+  `CONSULTATION_GRID_*` constants. The old names referred to a domain this
+  package has nothing to do with.
+
+### Deprecated
+
+- `CONSULTATION_GRID_START_MINUTES` and `CONSULTATION_GRID_END_MINUTES`. They
+  remain exported as aliases of the new names, so existing imports keep
+  working; they will be removed in a future major version.
+
 ## [1.3.0] - 2026-09-06
 
 ### Added
@@ -186,7 +206,8 @@ No runtime changes — the published bundle is byte-identical to 1.2.0.
 
 - Initial public releases.
 
-[Unreleased]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.2.2...v1.3.0
 [1.2.2]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.2.0...v1.2.1

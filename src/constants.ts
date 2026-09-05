@@ -55,14 +55,27 @@ export function getDayLabel(
 /**
  * Start of the *day* in minutes since midnight.
  *
- * This is an absolute bound, not the visible window — see `startHour`. Time
- * parsing and clamping stay anchored here so a slot outside the visible range
- * is still valid data rather than being rewritten.
+ * An absolute bound, not the visible window — see `startHour`. Time parsing and
+ * clamping stay anchored here so a slot outside the visible range remains valid
+ * data rather than being rewritten.
  */
-export const CONSULTATION_GRID_START_MINUTES = 0;
+export const DAY_START_MINUTES = 0;
 
 /** End of the day in minutes since midnight (24:00 = 1440). Absolute, as above. */
-export const CONSULTATION_GRID_END_MINUTES = 24 * 60;
+export const DAY_END_MINUTES = 24 * 60;
+
+/**
+ * @deprecated Renamed to {@link DAY_START_MINUTES}. The old name referred to a
+ * domain this package has nothing to do with. Kept as an alias; it will be
+ * removed in a future major version.
+ */
+export const CONSULTATION_GRID_START_MINUTES = DAY_START_MINUTES;
+
+/**
+ * @deprecated Renamed to {@link DAY_END_MINUTES}. Kept as an alias; it will be
+ * removed in a future major version.
+ */
+export const CONSULTATION_GRID_END_MINUTES = DAY_END_MINUTES;
 
 /** Default visible range: the whole day. */
 export const DEFAULT_START_HOUR = 0;
@@ -94,10 +107,7 @@ export function resolveHourRange(
           `Expected 0 <= startHour < endHour <= 24. Falling back to the full day.`
       );
     }
-    return {
-      startMinutes: CONSULTATION_GRID_START_MINUTES,
-      endMinutes: CONSULTATION_GRID_END_MINUTES,
-    };
+    return { startMinutes: DAY_START_MINUTES, endMinutes: DAY_END_MINUTES };
   }
   return { startMinutes: startHour * 60, endMinutes: endHour * 60 };
 }

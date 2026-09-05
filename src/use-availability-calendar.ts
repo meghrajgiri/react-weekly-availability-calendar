@@ -13,7 +13,7 @@ import { daysBetween, formatClock, formatClockIntl } from "./utils";
 import { useAvailabilityCalendarPlacement } from "./use-placement";
 import { useAvailabilityCalendarPointerHandlers } from "./use-pointer-handlers";
 import { useAvailabilityCalendarKeyboard } from "./use-keyboard-handlers";
-import { useConsultationGrid } from "./use-grid";
+import { useCalendarGrid } from "./use-grid";
 
 import type { AvailabilityCalendarProps, BlockedSlot } from "./types";
 
@@ -55,7 +55,7 @@ export function useAvailabilityCalendar({
   );
 
   const { totalRows, rowToMinutes, minutesToPx, clientYToRow } =
-    useConsultationGrid(snapMinutes, startMinutes, endMinutes);
+    useCalendarGrid(snapMinutes, startMinutes, endMinutes);
 
   const orderedDays = useMemo(() => getOrderedDays(startDay), [startDay]);
 

@@ -82,6 +82,33 @@ at a ten-minute snap — which would leave a screen-reader user traversing all o
 them to reach a handful of slots. Slots and day columns are exposed as labelled
 buttons instead.
 
+## End-of-day slots and storage
+
+A slot running to midnight ends at `"24:00"`. That is deliberate, and matches
+ISO 8601, which allows hour 24 as the **end** of an interval. It is also the
+only representation that survives a round trip:
+
+| End value | Parses back to | Result                                                        |
+| --------- | -------------- | ------------------------------------------------------------- |
+| `"24:00"` | 1440           | correct                                                       |
+| `"00:00"` | 0              | end is before the start — the slot is rejected and disappears |
+| `"23:59"` | 1439           | silently a minute short                                       |
+
+Some stores reject hour 24 — SQL `TIME`, and most date parsers. Convert at that
+boundary, where you know the string is an end time:
+
+```tsx
+import {
+  toStorageSlots,
+  fromStorageSlots,
+} from "react-weekly-availability-calendar";
+
+await db.save(toStorageSlots(slots)); // "24:00" -> "00:00"
+const slots = fromStorageSlots(await db.load()); // "00:00" -> "24:00"
+```
+
+Both are pure, leave every other slot untouched, and preserve custom fields.
+
 ## Documentation
 
 The full API — every prop, every variant, with live controls — is generated

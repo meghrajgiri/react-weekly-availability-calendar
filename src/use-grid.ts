@@ -8,7 +8,7 @@ import { minutesToOffsetPx } from "./utils";
  * Provides row counts, row-to-minute conversions, and pointer-to-row mapping.
  * @param snapMinutes - Snap increment (10, 30, or 60 minutes).
  */
-export function useConsultationGrid(
+export function useCalendarGrid(
   snapMinutes: 10 | 30 | 60,
   startMinutes: number,
   endMinutes: number
