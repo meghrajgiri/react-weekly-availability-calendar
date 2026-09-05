@@ -396,3 +396,238 @@ describe("visible hour range", () => {
     );
   });
 });
+
+describe("keyboard operation", () => {
+  const focusFirstSlot = async () => {
+    await readyColumns();
+    const slot = document.querySelector<HTMLElement>(
+      "[data-availability-block]"
+    )!;
+    slot.focus();
+    expect(document.activeElement).toBe(slot);
+    return slot;
+  };
+
+  it("moves a slot later and earlier with the arrow keys", async () => {
+    const onChange = vi.fn();
+    render(
+      <Harness
+        onChange={onChange}
+        initial={[
+          { id: "a", dayOfWeek: 1, startTime: "10:00", endTime: "11:00" },
+        ]}
+      />
+    );
+    await focusFirstSlot();
+
+    await userEvent.keyboard("{ArrowDown}");
+    expect((onChange.mock.lastCall![0] as AvailabilitySlot[])[0]).toMatchObject(
+      {
+        startTime: "11:00",
+        endTime: "12:00",
+      }
+    );
+
+    await focusFirstSlot();
+    await userEvent.keyboard("{ArrowUp}");
+    expect((onChange.mock.lastCall![0] as AvailabilitySlot[])[0]).toMatchObject(
+      {
+        startTime: "10:00",
+        endTime: "11:00",
+      }
+    );
+  });
+
+  it("moves a slot between days with left and right", async () => {
+    const onChange = vi.fn();
+    render(
+      <Harness
+        onChange={onChange}
+        initial={[
+          { id: "a", dayOfWeek: 1, startTime: "10:00", endTime: "11:00" },
+        ]}
+      />
+    );
+    await focusFirstSlot();
+
+    await userEvent.keyboard("{ArrowRight}");
+    expect(
+      (onChange.mock.lastCall![0] as AvailabilitySlot[])[0].dayOfWeek
+    ).toBe(2);
+  });
+
+  it("resizes with Shift and the arrow keys", async () => {
+    const onChange = vi.fn();
+    render(
+      <Harness
+        onChange={onChange}
+        initial={[
+          { id: "a", dayOfWeek: 1, startTime: "10:00", endTime: "11:00" },
+        ]}
+      />
+    );
+    await focusFirstSlot();
+
+    await userEvent.keyboard("{Shift>}{ArrowDown}{/Shift}");
+    expect((onChange.mock.lastCall![0] as AvailabilitySlot[])[0]).toMatchObject(
+      {
+        startTime: "10:00",
+        endTime: "12:00",
+      }
+    );
+  });
+
+  it("removes a slot with Delete", async () => {
+    const onChange = vi.fn();
+    render(
+      <Harness
+        onChange={onChange}
+        initial={[
+          { id: "a", dayOfWeek: 1, startTime: "10:00", endTime: "11:00" },
+        ]}
+      />
+    );
+    await focusFirstSlot();
+
+    await userEvent.keyboard("{Delete}");
+    expect(onChange.mock.lastCall![0]).toEqual([]);
+  });
+
+  it("creates a slot from a focused day column with Enter", async () => {
+    const onChange = vi.fn();
+    render(<Harness onChange={onChange} />);
+    const cols = await readyColumns();
+
+    (cols[3] as HTMLElement).focus();
+    await userEvent.keyboard("{Enter}");
+
+    const next = onChange.mock.lastCall![0] as AvailabilitySlot[];
+    expect(next).toHaveLength(1);
+    // Earliest free time in the 09:00-17:00 window, one hour long.
+    expect(next[0]).toMatchObject({
+      dayOfWeek: 3,
+      startTime: "09:00",
+      endTime: "10:00",
+    });
+  });
+
+  it("skips past occupied time when creating from the keyboard", async () => {
+    const onChange = vi.fn();
+    render(
+      <Harness
+        onChange={onChange}
+        blockedSlots={[
+          // Blocked rather than an availability slot: an adjacent slot would
+          // merge with the new one, which would hide where it was placed.
+          { dayOfWeek: 3, startTime: "09:00", endTime: "10:00", label: "Busy" },
+        ]}
+      />
+    );
+    const cols = await readyColumns();
+
+    (cols[3] as HTMLElement).focus();
+    await userEvent.keyboard("{Enter}");
+
+    const next = onChange.mock.lastCall![0] as AvailabilitySlot[];
+    expect(next).toHaveLength(1);
+    expect(next[0]).toMatchObject({
+      dayOfWeek: 3,
+      startTime: "10:00",
+      endTime: "11:00",
+    });
+  });
+
+  it("merges a keyboard-created slot with an adjacent one", async () => {
+    const onChange = vi.fn();
+    render(
+      <Harness
+        onChange={onChange}
+        initial={[
+          { id: "a", dayOfWeek: 3, startTime: "09:00", endTime: "10:00" },
+        ]}
+      />
+    );
+    const cols = await readyColumns();
+
+    (cols[3] as HTMLElement).focus();
+    await userEvent.keyboard("{Enter}");
+
+    // The new 10:00-11:00 slot touches the existing one, so they merge —
+    // the same rule the pointer path follows on commit.
+    const next = onChange.mock.lastCall![0] as AvailabilitySlot[];
+    expect(next).toHaveLength(1);
+    expect(next[0]).toMatchObject({ startTime: "09:00", endTime: "11:00" });
+  });
+
+  it("announces the result of an edit in a live region", async () => {
+    render(
+      <Harness
+        initial={[
+          { id: "a", dayOfWeek: 1, startTime: "10:00", endTime: "11:00" },
+        ]}
+      />
+    );
+    await focusFirstSlot();
+    await userEvent.keyboard("{ArrowDown}");
+
+    const live = document.querySelector('[role="status"]')!;
+    expect(live.getAttribute("aria-live")).toBe("polite");
+    await vi.waitFor(() => {
+      expect(live.textContent).toContain("11:00");
+    });
+  });
+
+  it("does nothing on a readOnly calendar", async () => {
+    const onChange = vi.fn();
+    render(
+      <Harness
+        onChange={onChange}
+        readOnly
+        initial={[
+          { id: "a", dayOfWeek: 1, startTime: "10:00", endTime: "11:00" },
+        ]}
+      />
+    );
+    await readyColumns();
+    const slot = document.querySelector<HTMLElement>(
+      "[data-availability-block]"
+    )!;
+    slot.focus();
+    await userEvent.keyboard("{ArrowDown}");
+    await userEvent.keyboard("{Delete}");
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("refuses a move that would collide, and says so", async () => {
+    const onChange = vi.fn();
+    render(
+      <Harness
+        onChange={onChange}
+        initial={[
+          { id: "a", dayOfWeek: 1, startTime: "10:00", endTime: "11:00" },
+        ]}
+        blockedSlots={[
+          // A blocked range, not a slot: two slots that merely touch would
+          // legitimately merge, which is a different behaviour entirely.
+          { dayOfWeek: 1, startTime: "12:00", endTime: "13:00", label: "Busy" },
+        ]}
+      />
+    );
+    await readyColumns();
+    const first = document.querySelectorAll<HTMLElement>(
+      "[data-availability-block]"
+    )[0];
+    first.focus();
+
+    // 10:00 -> 11:00 is free; the step after that overlaps the blocked range.
+    await userEvent.keyboard("{ArrowDown}");
+    onChange.mockClear();
+    await userEvent.keyboard("{ArrowDown}");
+
+    expect(onChange).not.toHaveBeenCalled();
+    const live = document.querySelector('[role="status"]')!;
+    await vi.waitFor(() => {
+      expect(live.textContent?.toLowerCase()).toContain("blocked");
+    });
+  });
+});

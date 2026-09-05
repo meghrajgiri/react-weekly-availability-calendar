@@ -59,6 +59,29 @@ function App() {
 }
 ```
 
+## Keyboard
+
+The calendar is fully operable without a pointer.
+
+| Focus        | Key                                          | Action                                     |
+| ------------ | -------------------------------------------- | ------------------------------------------ |
+| A day column | <kbd>Enter</kbd> / <kbd>Space</kbd>          | Add a slot at the earliest free time       |
+| A slot       | <kbd>↑</kbd> / <kbd>↓</kbd>                  | Move earlier / later by one snap increment |
+| A slot       | <kbd>←</kbd> / <kbd>→</kbd>                  | Move to the previous / next day            |
+| A slot       | <kbd>Shift</kbd> + <kbd>↑</kbd>/<kbd>↓</kbd> | Resize from the end edge                   |
+| A slot       | <kbd>Delete</kbd> / <kbd>Backspace</kbd>     | Remove the slot                            |
+| A slot       | <kbd>Enter</kbd> / <kbd>Space</kbd>          | Fire `onSlotClick`                         |
+
+Every change is announced in a polite live region. Moves that would collide with
+another slot or a blocked range are refused and announced rather than silently
+ignored.
+
+The calendar deliberately does **not** use ARIA's `grid` role. That role requires
+`row` and `gridcell` descendants across the whole surface — over a thousand cells
+at a ten-minute snap — which would leave a screen-reader user traversing all of
+them to reach a handful of slots. Slots and day columns are exposed as labelled
+buttons instead.
+
 ## Documentation
 
 The full API — every prop, every variant, with live controls — is generated

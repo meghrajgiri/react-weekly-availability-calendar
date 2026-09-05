@@ -56,6 +56,26 @@ const CSS_TEXT = /* css */ `
   box-sizing: border-box;
 }
 
+/* Visually hidden, still announced. Used by the live region that reports
+   the result of keyboard edits. */
+.ac-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Keyboard focus must be visible on both slots and day columns. */
+.ac-day-body:focus-visible {
+  outline: 2px solid var(--ac-accent-fg, var(--ac-fg));
+  outline-offset: -3px;
+}
+
 /* ─── Grid container ─── */
 .ac-grid-container {
   display: flex;
