@@ -7,6 +7,6 @@
     "sourceMap": false,
     "rootDir": "."
   },
-  "include": ["src", "playground", "vitest.config.ts", "tsup.config.ts"],
+  "include": ["src", "site", "vitest.config.ts", "tsup.config.ts"],
   "exclude": ["node_modules", "dist"]
 }
