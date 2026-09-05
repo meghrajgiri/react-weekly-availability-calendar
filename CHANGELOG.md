@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-09-05
+
+### Fixed
+
+- Slots that do not align to `snapMinutes` now render at their true position
+  and height. Positioning rounded to the nearest row, so with a 30-minute snap
+  a `09:15`–`09:45` slot was drawn at `09:00`, and a `09:10`–`09:50` slot was
+  drawn half again too tall. Consumer data rarely lands on snap boundaries, so
+  the calendar could silently misrepresent the times it was given.
+- Removed ARIA roles that promised interaction the component does not yet
+  offer. The root declared `role="grid"` with no `row`/`gridcell` descendants —
+  an invalid structure that announced a grid with nothing navigable inside it —
+  and the resize handles declared `role="separator"` despite being unfocusable.
+  The root is now a labelled `role="group"` and the handles are `aria-hidden`.
+  Slots keep `role="button"` when `onSlotClick` makes them activatable.
+
+### Changed
+
+- Three refs that were assigned during render (`slotsRef`, `canPlaceRef`,
+  `onSlotClickRef`) now update in effects. React may discard or replay a
+  render, and the pointer handlers write to `slotsRef` mid-drag, so a
+  discarded render could clobber in-flight drag state with slots that were
+  never committed.
+
 ## [1.0.1] - 2026-09-05
 
 ### Fixed
@@ -60,7 +84,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial public releases.
 
-[Unreleased]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/meghrajgiri/react-weekly-availability-calendar/releases/tag/v1.0.0
 [0.1.2]: https://github.com/meghrajgiri/react-weekly-availability-calendar/releases/tag/v0.1.2
