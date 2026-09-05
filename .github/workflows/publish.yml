@@ -20,9 +20,27 @@ jobs:
           node-version: 22
           registry-url: https://registry.npmjs.org
 
-      # Trusted Publishing requires npm 11.5.1+
-      - run: npm install -g npm@latest
+      # Trusted Publishing requires npm 11.5.1+. Pinned to a major so a
+      # future npm release cannot break publishing without a deliberate bump.
+      - run: npm install -g npm@11
 
       - run: npm ci
+
+      # Guard against publishing a version that does not match the release
+      # tag: without this, tagging v1.1.0 while package.json still reads
+      # 1.0.0 silently republishes (or fails) the wrong version.
+      - name: Verify tag matches package.json version
+        run: |
+          PKG_VERSION="$(node -p "require('./package.json').version")"
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          echo "package.json: $PKG_VERSION"
+          echo "release tag:  $TAG_VERSION"
+          if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
+            echo "::error::Release tag ($TAG_VERSION) does not match package.json version ($PKG_VERSION)."
+            exit 1
+          fi
+
+      - run: npm run typecheck
+      - run: npm test
       - run: npm run build
       - run: npm publish --provenance --access public
