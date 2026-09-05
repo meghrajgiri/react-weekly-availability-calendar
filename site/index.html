@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>
+      react-weekly-availability-calendar — draggable weekly availability for
+      React
+    </title>
+    <meta
+      name="description"
+      content="A customizable, draggable weekly availability calendar component for React. Create, resize and move time slots. Zero runtime dependencies, SSR-safe, TypeScript first."
+    />
+    <link
+      rel="canonical"
+      href="https://ui.meghrajgiri.com/availability-calendar/"
+    />
+
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:url"
+      content="https://ui.meghrajgiri.com/availability-calendar/"
+    />
+    <meta property="og:title" content="react-weekly-availability-calendar" />
+    <meta
+      property="og:description"
+      content="A weekly availability calendar for React you can actually drag. Zero dependencies, SSR-safe, TypeScript first."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <meta
+      name="theme-color"
+      content="#ffffff"
+      media="(prefers-color-scheme: light)"
+    />
+    <meta
+      name="theme-color"
+      content="#0e1116"
+      media="(prefers-color-scheme: dark)"
+    />
+
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%234f46e5'/><rect x='7' y='9' width='18' height='3' rx='1.5' fill='white' opacity='.9'/><rect x='7' y='15' width='11' height='8' rx='2' fill='white'/></svg>"
+    />
+
+    <script>
+      // Set the theme before first paint so the page never flashes light.
+      try {
+        var saved = localStorage.getItem("ac-docs-theme");
+        var dark = saved
+          ? saved === "dark"
+          : matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.dataset.theme = dark ? "dark" : "light";
+      } catch (e) {
+        /* no storage — React will set it on mount */
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./main.tsx"></script>
+  </body>
+</html>
