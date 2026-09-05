@@ -398,6 +398,15 @@ describe("visible hour range", () => {
 });
 
 describe("keyboard operation", () => {
+  /** Focuses the keyboard "add" button for a day column. */
+  const focusAddButton = async (colIndex: number) => {
+    const cols = await readyColumns();
+    const btn = cols[colIndex].querySelector<HTMLElement>("[data-add-slot]")!;
+    btn.focus();
+    expect(document.activeElement).toBe(btn);
+    return btn;
+  };
+
   const focusFirstSlot = async () => {
     await readyColumns();
     const slot = document.querySelector<HTMLElement>(
@@ -493,12 +502,11 @@ describe("keyboard operation", () => {
     expect(onChange.mock.lastCall![0]).toEqual([]);
   });
 
-  it("creates a slot from a focused day column with Enter", async () => {
+  it("creates a slot from the day column's add button", async () => {
     const onChange = vi.fn();
     render(<Harness onChange={onChange} />);
-    const cols = await readyColumns();
 
-    (cols[3] as HTMLElement).focus();
+    await focusAddButton(3);
     await userEvent.keyboard("{Enter}");
 
     const next = onChange.mock.lastCall![0] as AvailabilitySlot[];
@@ -523,9 +531,7 @@ describe("keyboard operation", () => {
         ]}
       />
     );
-    const cols = await readyColumns();
-
-    (cols[3] as HTMLElement).focus();
+    await focusAddButton(3);
     await userEvent.keyboard("{Enter}");
 
     const next = onChange.mock.lastCall![0] as AvailabilitySlot[];
@@ -547,9 +553,7 @@ describe("keyboard operation", () => {
         ]}
       />
     );
-    const cols = await readyColumns();
-
-    (cols[3] as HTMLElement).focus();
+    await focusAddButton(3);
     await userEvent.keyboard("{Enter}");
 
     // The new 10:00-11:00 slot touches the existing one, so they merge —
@@ -557,6 +561,50 @@ describe("keyboard operation", () => {
     const next = onChange.mock.lastCall![0] as AvailabilitySlot[];
     expect(next).toHaveLength(1);
     expect(next[0]).toMatchObject({ startTime: "09:00", endTime: "11:00" });
+  });
+
+  it("does not nest interactive controls", async () => {
+    // Slots live inside the day columns, so the columns must not be
+    // interactive themselves — axe flags that as nested-interactive, and it
+    // confuses screen readers and keyboard focus.
+    render(
+      <Harness
+        initial={[
+          { id: "a", dayOfWeek: 1, startTime: "10:00", endTime: "11:00" },
+        ]}
+      />
+    );
+    const cols = await readyColumns();
+    for (const col of cols) {
+      expect(col.getAttribute("role")).toBe("group");
+      expect(col.hasAttribute("tabindex")).toBe(false);
+    }
+  });
+
+  it("never labels a column without giving it a role", async () => {
+    // aria-label is prohibited on a div with no role.
+    render(<Harness readOnly />);
+    const cols = await readyColumns();
+    for (const col of cols) {
+      if (col.hasAttribute("aria-label")) {
+        expect(col.getAttribute("role")).toBeTruthy();
+      }
+    }
+  });
+
+  it("makes the scrollable region reachable by keyboard", async () => {
+    render(<Harness />);
+    await readyColumns();
+    const scroll = document.querySelector(".ac-grid-scroll")!;
+    expect(scroll.getAttribute("tabindex")).toBe("0");
+  });
+
+  it("offers no add button in readOnly mode", async () => {
+    render(<Harness readOnly />);
+    const cols = await readyColumns();
+    for (const col of cols) {
+      expect(col.querySelectorAll("[data-add-slot]")).toHaveLength(0);
+    }
   });
 
   it("announces the result of an edit in a live region", async () => {

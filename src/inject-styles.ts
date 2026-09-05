@@ -245,6 +245,43 @@ const CSS_TEXT = /* css */ `
   /* Transparent so the shared gridline layer shows through. */
 }
 
+/* Creation affordance for keyboard users. Clipped away until focused, then
+   shown as a normal button so a sighted keyboard user can see where they are. */
+.ac-add-slot {
+  position: absolute;
+  z-index: 40;
+  top: 2px;
+  left: 2px;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+  font: inherit;
+  font-size: 0.75rem;
+}
+.ac-add-slot:focus-visible {
+  width: auto;
+  height: auto;
+  clip: auto;
+  overflow: visible;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--ac-accent-fg, var(--ac-fg));
+  background: var(--ac-card);
+  color: var(--ac-fg);
+  cursor: pointer;
+  outline: 2px solid var(--ac-accent-fg, var(--ac-fg));
+  outline-offset: 1px;
+}
+
+.ac-grid-scroll:focus-visible {
+  outline: 2px solid var(--ac-accent-fg, var(--ac-fg));
+  outline-offset: -2px;
+}
+
 /* One shared set of horizontal rules for the whole grid. Beneath the columns,
    so their vertical borders paint over it exactly as before. */
 .ac-gridlines {
@@ -333,6 +370,11 @@ const CSS_TEXT = /* css */ `
   white-space: nowrap;
   font-weight: 500;
   color: var(--ac-blocked-fg, var(--ac-muted-fg));
+  /* Sits on a striped gradient, so the text gets its own solid backdrop.
+     Without it the contrast ratio is neither computable nor reliable. */
+  background: var(--ac-blocked-bg, var(--ac-card));
+  padding: 0 0.25rem;
+  border-radius: 0.25rem;
 }
 .ac-blocked-label--sm {
   font-size: 0.875rem;
