@@ -1,10 +1,6 @@
 import { useCallback, useMemo } from "react";
 
-import {
-  CONSULTATION_GRID_END_MINUTES,
-  CONSULTATION_GRID_START_MINUTES,
-  ROW_HEIGHT_PX,
-} from "./constants";
+import { ROW_HEIGHT_PX } from "./constants";
 import { minutesToOffsetPx } from "./utils";
 
 /**
@@ -12,20 +8,21 @@ import { minutesToOffsetPx } from "./utils";
  * Provides row counts, row-to-minute conversions, and pointer-to-row mapping.
  * @param snapMinutes - Snap increment (10, 30, or 60 minutes).
  */
-export function useConsultationGrid(snapMinutes: 10 | 30 | 60) {
+export function useConsultationGrid(
+  snapMinutes: 10 | 30 | 60,
+  startMinutes: number,
+  endMinutes: number
+) {
   /** Total number of rows in the grid. */
   const totalRows = useMemo(
-    () =>
-      (CONSULTATION_GRID_END_MINUTES - CONSULTATION_GRID_START_MINUTES) /
-      snapMinutes,
-    [snapMinutes]
+    () => Math.max(1, Math.ceil((endMinutes - startMinutes) / snapMinutes)),
+    [snapMinutes, startMinutes, endMinutes]
   );
 
   /** Converts a row index to minutes since midnight. */
   const rowToMinutes = useCallback(
-    (rowIndex: number) =>
-      CONSULTATION_GRID_START_MINUTES + rowIndex * snapMinutes,
-    [snapMinutes]
+    (rowIndex: number) => startMinutes + rowIndex * snapMinutes,
+    [snapMinutes, startMinutes]
   );
 
   /**
@@ -34,8 +31,9 @@ export function useConsultationGrid(snapMinutes: 10 | 30 | 60) {
    * their true position and height.
    */
   const minutesToPx = useCallback(
-    (minutes: number) => minutesToOffsetPx(minutes, snapMinutes, ROW_HEIGHT_PX),
-    [snapMinutes]
+    (minutes: number) =>
+      minutesToOffsetPx(minutes, snapMinutes, ROW_HEIGHT_PX, startMinutes),
+    [snapMinutes, startMinutes]
   );
 
   /** Converts a pointer clientY position to a row index within a column element. */

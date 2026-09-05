@@ -52,11 +52,55 @@ export function getDayLabel(
   return format === "long" ? DAY_LONG[day] : DAY_SHORT[day];
 }
 
-/** Start of the calendar grid in minutes since midnight. */
+/**
+ * Start of the *day* in minutes since midnight.
+ *
+ * This is an absolute bound, not the visible window — see `startHour`. Time
+ * parsing and clamping stay anchored here so a slot outside the visible range
+ * is still valid data rather than being rewritten.
+ */
 export const CONSULTATION_GRID_START_MINUTES = 0;
 
-/** End of the calendar grid in minutes since midnight (24:00 = 1440). */
+/** End of the day in minutes since midnight (24:00 = 1440). Absolute, as above. */
 export const CONSULTATION_GRID_END_MINUTES = 24 * 60;
+
+/** Default visible range: the whole day. */
+export const DEFAULT_START_HOUR = 0;
+export const DEFAULT_END_HOUR = 24;
+
+/**
+ * Validates and normalises the visible hour range into minutes.
+ *
+ * Falls back to the full day if the range is inverted, out of bounds, or not
+ * finite, and warns in development: silently rendering an empty or negative
+ * grid would be far harder for a consumer to diagnose.
+ */
+export function resolveHourRange(
+  startHour: number,
+  endHour: number
+): { startMinutes: number; endMinutes: number } {
+  const valid =
+    Number.isFinite(startHour) &&
+    Number.isFinite(endHour) &&
+    startHour >= 0 &&
+    endHour <= 24 &&
+    startHour < endHour;
+
+  if (!valid) {
+    if (process.env.NODE_ENV !== "production") {
+      console.warn(
+        `[react-weekly-availability-calendar] Invalid hour range ` +
+          `{ startHour: ${startHour}, endHour: ${endHour} }. ` +
+          `Expected 0 <= startHour < endHour <= 24. Falling back to the full day.`
+      );
+    }
+    return {
+      startMinutes: CONSULTATION_GRID_START_MINUTES,
+      endMinutes: CONSULTATION_GRID_END_MINUTES,
+    };
+  }
+  return { startMinutes: startHour * 60, endMinutes: endHour * 60 };
+}
 
 /** Height of each grid row in pixels. */
 export const ROW_HEIGHT_PX = 24;

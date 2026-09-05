@@ -63,6 +63,18 @@ export const PROPS: PropRow[] = [
     desc: "Style of the sub-hour snap gridlines.",
   },
   {
+    name: "startHour",
+    type: "number",
+    def: "0",
+    desc: "First hour shown on the grid (0-23). Presentational only — slots outside stay in your data.",
+  },
+  {
+    name: "endHour",
+    type: "number",
+    def: "24",
+    desc: "Last hour shown on the grid (1-24, greater than startHour).",
+  },
+  {
     name: "locale",
     type: "string",
     def: "—",

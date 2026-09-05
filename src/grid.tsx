@@ -29,6 +29,8 @@ export function AvailabilityCalendarGrid({
     readOnly,
     drag,
     totalRows,
+    startMinutes,
+    endMinutes,
     rowTopBorderClass,
     timeLabels,
     createPreview,
@@ -161,8 +163,18 @@ export function AvailabilityCalendarGrid({
                     {blockedSlots
                       .filter((b) => b.dayOfWeek === dayOfWeek)
                       .map((b, blockedIndex) => {
-                        const sm = hhmmToMinutes(b.startTime);
-                        const em = hhmmToMinutes(b.endTime);
+                        // Clip to the visible window rather than letting the
+                        // block spill outside it. Data is never modified — a
+                        // slot outside the range is simply not drawn.
+                        const sm = Math.max(
+                          startMinutes,
+                          hhmmToMinutes(b.startTime)
+                        );
+                        const em = Math.min(
+                          endMinutes,
+                          hhmmToMinutes(b.endTime)
+                        );
+                        if (em <= sm) return null;
                         const top = minutesToPx(sm);
                         const h = minutesToPx(em) - minutesToPx(sm);
                         if (h <= 0) return null;
@@ -202,8 +214,15 @@ export function AvailabilityCalendarGrid({
                       .map((s) => {
                         const sm = hhmmToMinutes(s.startTime);
                         const em = hhmmToMinutes(s.endTime);
-                        const top = minutesToPx(sm);
-                        const h = minutesToPx(em) - minutesToPx(sm);
+                        // Geometry is clipped to the visible window; the labels
+                        // below still report the slot's real times, so a
+                        // partially visible slot never misstates its data.
+                        const visibleStart = Math.max(startMinutes, sm);
+                        const visibleEnd = Math.min(endMinutes, em);
+                        if (visibleEnd <= visibleStart) return null;
+                        const top = minutesToPx(visibleStart);
+                        const h =
+                          minutesToPx(visibleEnd) - minutesToPx(visibleStart);
                         const dur = em - sm;
                         const startLbl = formatTime(sm);
                         const endLbl = formatTime(em);
