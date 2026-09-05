@@ -147,7 +147,7 @@ export function AvailabilityCalendarGrid({
                     {/* Blocked slots */}
                     {blockedSlots
                       .filter((b) => b.dayOfWeek === dayOfWeek)
-                      .map((b) => {
+                      .map((b, blockedIndex) => {
                         const sm = hhmmToMinutes(b.startTime);
                         const em = hhmmToMinutes(b.endTime);
                         const top = minutesToRowIndex(sm) * ROW_HEIGHT_PX;
@@ -171,7 +171,7 @@ export function AvailabilityCalendarGrid({
 
                         return (
                           <div
-                            key={`${b.label}-${sm}`}
+                            key={`blocked-${dayOfWeek}-${blockedIndex}`}
                             className={cn("ac-blocked-slot", cx?.blockedSlot)}
                             style={{
                               top,

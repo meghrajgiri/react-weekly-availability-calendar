@@ -6,7 +6,10 @@ import {
 } from "./constants";
 import { hhmmToMinutes, overlaps } from "./utils";
 
-import type { AvailabilityCalendarProps } from "./types";
+import type { AvailabilityCalendarProps, BlockedSlot } from "./types";
+
+/** Stable identity for the default `blockedSlots` — see use-availability-calendar. */
+const NO_BLOCKED_SLOTS: BlockedSlot[] = [];
 
 /**
  * Hook that manages slot placement validation.
@@ -15,7 +18,7 @@ import type { AvailabilityCalendarProps } from "./types";
  */
 export function useAvailabilityCalendarPlacement({
   slots,
-  blockedSlots = [],
+  blockedSlots = NO_BLOCKED_SLOTS,
 }: Pick<AvailabilityCalendarProps, "slots" | "blockedSlots">) {
   const slotsRef = useRef(slots);
   slotsRef.current = slots;
