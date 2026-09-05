@@ -5,3 +5,6 @@ storybook-static
 *.tsbuildinfo
 .DS_Store
 .claude
+
+# Vitest browser-mode artifacts
+.vitest/

@@ -30,11 +30,27 @@ export function dayIndexFromClientX(
   daysGridEl: HTMLElement,
   orderedDays: DayOfWeek[]
 ): DayOfWeek {
+  // Hit-test the real columns rather than dividing the grid width by seven.
+  // Below the 768px breakpoint the columns are pinned to a fixed width while
+  // the grid element still stretches to fill its parent, so the two disagree
+  // and uniform arithmetic maps a pointer to the wrong day.
+  const cols = daysGridEl.querySelectorAll<HTMLElement>(
+    "[data-day-column-body]"
+  );
+  if (cols.length === orderedDays.length) {
+    for (let i = 0; i < cols.length; i++) {
+      // The last column absorbs anything past its right edge, and the first
+      // absorbs anything before it, so the pointer always resolves to a day.
+      if (clientX < cols[i].getBoundingClientRect().right)
+        return orderedDays[i];
+    }
+    return orderedDays[orderedDays.length - 1];
+  }
+
+  // Fallback for when the columns are not mounted (e.g. mid-teardown).
   const r = daysGridEl.getBoundingClientRect();
   const x = Math.max(0, Math.min(r.width - Number.EPSILON, clientX - r.left));
-  const colW = r.width / 7;
-  const colIndex = Math.min(6, Math.floor(x / colW));
-  return orderedDays[colIndex];
+  return orderedDays[Math.min(6, Math.floor(x / (r.width / 7)))];
 }
 
 /**
