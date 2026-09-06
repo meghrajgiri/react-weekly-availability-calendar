@@ -4,7 +4,6 @@ A customizable, draggable weekly availability calendar component for React.
 Create, resize, and move time slots with zero external styling dependencies.
 
 [![npm](https://img.shields.io/npm/v/react-weekly-availability-calendar?color=4f46e5)](https://www.npmjs.com/package/react-weekly-availability-calendar)
-[![npm downloads](https://img.shields.io/npm/dm/react-weekly-availability-calendar?color=4f46e5)](https://www.npmjs.com/package/react-weekly-availability-calendar)
 [![license](https://img.shields.io/npm/l/react-weekly-availability-calendar?color=4f46e5)](./LICENSE)
 
 ### → [Try the live demo](https://ui.meghrajgiri.com/availability-calendar/)
