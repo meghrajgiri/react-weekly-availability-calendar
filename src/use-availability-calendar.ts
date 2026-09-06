@@ -15,7 +15,11 @@ import { useAvailabilityCalendarPointerHandlers } from "./use-pointer-handlers";
 import { useAvailabilityCalendarKeyboard } from "./use-keyboard-handlers";
 import { useCalendarGrid } from "./use-grid";
 
-import type { AvailabilityCalendarProps, BlockedSlot } from "./types";
+import type {
+  AvailabilityCalendarProps,
+  BlockedSlot,
+  DayOfWeek,
+} from "./types";
 
 /**
  * Stable identity for the default `blockedSlots`. A `= []` default parameter
@@ -109,24 +113,14 @@ export function useAvailabilityCalendar({
     canPlaceRef,
   });
 
-  const { handleSlotKeyDown, addSlotToDay, announcement } =
-    useAvailabilityCalendarKeyboard({
-      readOnly,
-      snapMinutes,
-      bounds: { startMinutes, endMinutes },
-      disabledDays: disabledDaySet,
-      minSlotMinutes: minDuration,
-      maxSlotMinutes: maxDuration,
-      orderedDays,
-      slots,
-      blockedSlots,
-      onSlotsChange,
-      canPlaceRef,
-    });
+  const formatDayLabel = useCallback(
+    (day: DayOfWeek) => getDayLabel(day, dayLabelFormat, locale),
+    [dayLabelFormat, locale]
+  );
 
   const dayLabels = useMemo(
-    () => orderedDays.map((d) => getDayLabel(d, dayLabelFormat, locale)),
-    [orderedDays, dayLabelFormat, locale]
+    () => orderedDays.map(formatDayLabel),
+    [orderedDays, formatDayLabel]
   );
 
   const removeSlot = (id: number | string) => {
@@ -143,6 +137,23 @@ export function useAvailabilityCalendar({
         : formatClock(minutes, timeFormat).primary,
     [timeFormat, locale]
   );
+
+  const { handleSlotKeyDown, addSlotToDay, announcement } =
+    useAvailabilityCalendarKeyboard({
+      readOnly,
+      snapMinutes,
+      bounds: { startMinutes, endMinutes },
+      disabledDays: disabledDaySet,
+      minSlotMinutes: minDuration,
+      maxSlotMinutes: maxDuration,
+      orderedDays,
+      formatTime,
+      formatDayLabel,
+      slots,
+      blockedSlots,
+      onSlotsChange,
+      canPlaceRef,
+    });
 
   const timeLabels = useMemo(() => {
     const labels: (string | null)[] = [];

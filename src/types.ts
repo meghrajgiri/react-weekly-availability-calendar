@@ -109,10 +109,39 @@ export interface CalendarClassNames {
 }
 
 export interface AvailabilityCalendarProps {
+  /**
+   * The availability to display. The calendar is fully controlled: it renders
+   * exactly what it is given and never holds its own copy, so this must be
+   * updated from {@link AvailabilityCalendarProps.onSlotsChange} for edits to
+   * appear.
+   */
   slots: AvailabilitySlot[];
+  /**
+   * Called with the complete next set of slots whenever one is created, moved,
+   * resized or removed. Store the value and pass it back as `slots`.
+   *
+   * **Slots that touch or overlap are merged**, and a merge keeps the fields —
+   * including the `id` — of the slot that starts earliest. So dragging a slot
+   * until it meets its neighbour returns *one* slot where there were two, and
+   * the later slot's id is gone. If you key database rows off these ids, treat
+   * the array as a fresh statement of availability rather than a diff.
+   *
+   * A slot running to midnight ends at `"24:00"`. See `toStorageSlots` if your
+   * storage rejects hour 24.
+   */
   onSlotsChange: (next: AvailabilitySlot[]) => void;
+  /** Non-interactive busy ranges, drawn behind the slots with a striped fill. */
   blockedSlots?: BlockedSlot[];
+  /**
+   * Size of one grid row in minutes, and therefore the increment every drag,
+   * resize and keyboard step snaps to. Also the shortest slot the grid can
+   * represent.
+   */
   snapMinutes: 10 | 30 | 60;
+  /**
+   * Clock format for the time gutter, slot labels and screen-reader
+   * announcements. Combine with `locale` for locale-aware formatting.
+   */
   timeFormat: "12" | "24";
   readOnly?: boolean;
 

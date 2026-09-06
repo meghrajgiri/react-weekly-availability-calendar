@@ -37,3 +37,6 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Build docs site and Storybook
+        run: npm run docs:build

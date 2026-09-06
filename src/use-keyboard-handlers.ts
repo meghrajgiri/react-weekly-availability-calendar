@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 
 import {
+  describeSlot,
   findFreeRange,
   resizeSlotEnd,
   shiftSlotDay,
@@ -26,6 +27,10 @@ interface UseKeyboardHandlersParams {
   minSlotMinutes: number;
   maxSlotMinutes: number;
   orderedDays: DayOfWeek[];
+  /** Formats a time for announcements, matching what is shown on screen. */
+  formatTime: (minutes: number) => string;
+  /** Resolves a day's display label, honouring `dayLabelFormat` and `locale`. */
+  formatDayLabel: (day: DayOfWeek) => string;
   slots: AvailabilitySlot[];
   blockedSlots: BlockedSlot[];
   onSlotsChange: (next: AvailabilitySlot[]) => void;
@@ -60,6 +65,8 @@ export function useAvailabilityCalendarKeyboard({
   minSlotMinutes,
   maxSlotMinutes,
   orderedDays,
+  formatTime,
+  formatDayLabel,
   slots,
   blockedSlots,
   onSlotsChange,
@@ -67,14 +74,35 @@ export function useAvailabilityCalendarKeyboard({
 }: UseKeyboardHandlersParams) {
   // Announced politely so a screen reader reports the result of each edit;
   // without it, keyboard changes are completely silent.
-  const [announcement, setAnnouncement] = useState("");
+  //
+  // The counter matters: setting the same string twice bails out of the
+  // re-render, the DOM text never changes, and aria-live stays quiet. Holding
+  // an arrow key against a blocked slot would then announce once and go silent,
+  // which is indistinguishable from the app hanging. A zero-width space,
+  // toggled on each message, keeps the text technically different without
+  // being spoken.
+  const [announced, setAnnounced] = useState({ text: "", n: 0 });
+  const setAnnouncement = useCallback(
+    (text: string) => setAnnounced((prev) => ({ text, n: prev.n + 1 })),
+    []
+  );
+  const announcement = announced.text + (announced.n % 2 === 0 ? "" : "\u200B");
+
+  /** Formats a range the way the calendar displays it, not as raw HH:mm. */
+  const describeRange = useCallback(
+    (startTime: string, endTime: string) =>
+      `${formatTime(hhmmToMinutes(startTime))} to ${formatTime(
+        hhmmToMinutes(endTime)
+      )}`,
+    [formatTime]
+  );
 
   const commit = useCallback(
     (next: AvailabilitySlot[], message: string) => {
       onSlotsChange(mergeAdjacentSlots(next));
       setAnnouncement(message);
     },
-    [onSlotsChange]
+    [onSlotsChange, setAnnouncement]
   );
 
   /** Applies a proposed change to one slot, if it fits. */
@@ -96,7 +124,7 @@ export function useAvailabilityCalendarKeyboard({
         message
       );
     },
-    [slots, canPlaceRef, commit]
+    [slots, canPlaceRef, commit, setAnnouncement]
   );
 
   /**
@@ -121,7 +149,7 @@ export function useAvailabilityCalendarKeyboard({
             applyToSlot(
               slot,
               next,
-              `Resized to ${next.startTime}–${next.endTime}`
+              `Resized to ${describeRange(next.startTime, next.endTime)}`
             );
           } else {
             const next = shiftSlotTime(slot, dir * snapMinutes, bounds);
@@ -129,7 +157,7 @@ export function useAvailabilityCalendarKeyboard({
             applyToSlot(
               slot,
               next,
-              `Moved to ${next.startTime}–${next.endTime}`
+              `Moved to ${describeRange(next.startTime, next.endTime)}`
             );
           }
           return true;
@@ -139,7 +167,11 @@ export function useAvailabilityCalendarKeyboard({
           const dir = e.key === "ArrowRight" ? 1 : -1;
           const day = shiftSlotDay(slot, dir, orderedDays);
           if (day === null) return true;
-          applyToSlot(slot, { dayOfWeek: day }, `Moved to day ${day}`);
+          applyToSlot(
+            slot,
+            { dayOfWeek: day },
+            `Moved to ${formatDayLabel(day)}`
+          );
           return true;
         }
         case "Delete":
@@ -169,7 +201,7 @@ export function useAvailabilityCalendarKeyboard({
     (dayOfWeek: DayOfWeek): void => {
       if (readOnly) return;
       if (disabledDays.has(dayOfWeek)) {
-        setAnnouncement("That day is not available");
+        setAnnouncement(`${formatDayLabel(dayOfWeek)} is not available`);
         return;
       }
 
@@ -188,13 +220,17 @@ export function useAvailabilityCalendarKeyboard({
       );
       const range = findFreeRange(duration, snapMinutes, bounds, occupied);
       if (!range) {
-        setAnnouncement("No free time on that day");
+        setAnnouncement(`No free time on ${formatDayLabel(dayOfWeek)}`);
         return;
       }
 
       commit(
         [...slots, { id: newTempAvailabilitySlotId(), dayOfWeek, ...range }],
-        `Slot added, ${range.startTime} to ${range.endTime}`
+        `Slot added. ${describeSlot(
+          formatDayLabel(dayOfWeek),
+          formatTime(hhmmToMinutes(range.startTime)),
+          formatTime(hhmmToMinutes(range.endTime))
+        )}`
       );
     },
     [
@@ -207,6 +243,9 @@ export function useAvailabilityCalendarKeyboard({
       minSlotMinutes,
       maxSlotMinutes,
       commit,
+      setAnnouncement,
+      formatTime,
+      formatDayLabel,
     ]
   );
 

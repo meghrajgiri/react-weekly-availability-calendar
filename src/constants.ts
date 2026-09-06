@@ -1,8 +1,8 @@
 import type { DayOfWeek } from "./types";
 import { getIntlDayName } from "./utils";
 
-/** Short day-of-week labels (e.g. "Sun", "Mon"). */
-export const DAY_SHORT: Record<DayOfWeek, string> = {
+/** Short day-of-week labels (e.g. "Sun", "Mon"). Internal to getDayLabel. */
+const DAY_SHORT: Record<DayOfWeek, string> = {
   0: "Sun",
   1: "Mon",
   2: "Tue",
@@ -12,8 +12,8 @@ export const DAY_SHORT: Record<DayOfWeek, string> = {
   6: "Sat",
 };
 
-/** Full day-of-week labels (e.g. "Sunday", "Monday"). */
-export const DAY_LONG: Record<DayOfWeek, string> = {
+/** Full day-of-week labels (e.g. "Sunday", "Monday"). Internal to getDayLabel. */
+const DAY_LONG: Record<DayOfWeek, string> = {
   0: "Sunday",
   1: "Monday",
   2: "Tuesday",

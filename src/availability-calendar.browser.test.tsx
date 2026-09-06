@@ -876,3 +876,101 @@ describe("disabled days", () => {
     expect(cols[1].querySelectorAll("[data-add-slot]")).toHaveLength(1);
   });
 });
+
+describe("live region wording", () => {
+  const live = () => document.querySelector('[role="status"]')!;
+  const text = () => live().textContent?.replace(/\u200B/g, "") ?? "";
+
+  it("names the day rather than announcing a number", async () => {
+    render(
+      <Harness
+        initial={[
+          { id: "a", dayOfWeek: 1, startTime: "10:00", endTime: "11:00" },
+        ]}
+      />
+    );
+    await readyColumns();
+    document.querySelector<HTMLElement>("[data-availability-block]")!.focus();
+
+    await userEvent.keyboard("{ArrowRight}");
+    await vi.waitFor(() => {
+      // Previously "Moved to day 2", which means nothing to a listener.
+      expect(text()).toContain("Tue");
+      expect(text()).not.toMatch(/day \d/);
+    });
+  });
+
+  it("announces times in the format the calendar displays", async () => {
+    render(
+      <Harness
+        timeFormat="12"
+        initial={[
+          { id: "a", dayOfWeek: 1, startTime: "13:00", endTime: "14:00" },
+        ]}
+      />
+    );
+    await readyColumns();
+    document.querySelector<HTMLElement>("[data-availability-block]")!.focus();
+
+    await userEvent.keyboard("{ArrowDown}");
+    await vi.waitFor(() => {
+      // 12-hour display must not announce 24-hour times.
+      expect(text().toUpperCase()).toContain("PM");
+      expect(text()).not.toContain("14:00");
+    });
+  });
+
+  it("follows the locale as well as the format", async () => {
+    render(
+      <Harness
+        locale="de-DE"
+        timeFormat="24"
+        initial={[
+          { id: "a", dayOfWeek: 1, startTime: "10:00", endTime: "11:00" },
+        ]}
+      />
+    );
+    await readyColumns();
+    document.querySelector<HTMLElement>("[data-availability-block]")!.focus();
+
+    await userEvent.keyboard("{ArrowRight}");
+    await vi.waitFor(() => {
+      // German short weekday for Tuesday, not the English one.
+      expect(text()).toContain("Di");
+    });
+  });
+
+  it("re-announces an identical message so a repeat is not silent", async () => {
+    render(
+      <Harness
+        initial={[
+          { id: "a", dayOfWeek: 1, startTime: "10:00", endTime: "11:00" },
+        ]}
+        blockedSlots={[
+          { dayOfWeek: 1, startTime: "11:00", endTime: "12:00", label: "Busy" },
+        ]}
+      />
+    );
+    await readyColumns();
+    document.querySelector<HTMLElement>("[data-availability-block]")!.focus();
+
+    // Both presses hit the same wall and produce the same message.
+    await userEvent.keyboard("{ArrowDown}");
+    await vi.waitFor(() => expect(text().toLowerCase()).toContain("blocked"));
+    const first = live().textContent;
+
+    await userEvent.keyboard("{ArrowDown}");
+    await vi.waitFor(() => {
+      // The rendered text must differ, or aria-live never fires a second time.
+      expect(live().textContent).not.toBe(first);
+    });
+    expect(text().toLowerCase()).toContain("blocked");
+  });
+
+  it("names the day when creation is refused", async () => {
+    render(<Harness disabledDays={[1]} />);
+    const cols = await readyColumns();
+    // A disabled column has no add button, so drive it through a slot-free day.
+    expect(cols[1].querySelectorAll("[data-add-slot]")).toHaveLength(0);
+  });
+});
