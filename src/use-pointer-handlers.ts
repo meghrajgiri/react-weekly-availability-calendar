@@ -9,6 +9,7 @@ import type {
 } from "./types";
 
 import { ROW_HEIGHT_PX } from "./constants";
+import { trackPointerGesture } from "./pointer-gesture";
 import { useLatestRef } from "./use-latest-ref";
 import {
   dayIndexFromClientX,
@@ -136,11 +137,10 @@ export function useAvailabilityCalendarPointerHandlers({
         columnEl: col,
       });
 
-      const ac = new AbortController();
-      const { signal } = ac;
+      let stopGesture = () => {};
 
       const endDrag = () => {
-        ac.abort();
+        stopGesture();
         unlockCalendarTouchScroll();
         try {
           col.releasePointerCapture(pointerId);
@@ -150,7 +150,6 @@ export function useAvailabilityCalendarPointerHandlers({
       };
 
       const onMove = (ev: PointerEvent) => {
-        if (ev.pointerId !== pointerId) return;
         ev.preventDefault();
         const r = clientYToRow(ev.clientY, col);
         const grid = daysGridRef.current;
@@ -169,8 +168,6 @@ export function useAvailabilityCalendarPointerHandlers({
       };
 
       const onUp = (ev: PointerEvent) => {
-        if (ev.pointerId !== pointerId) return;
-
         const row = clientYToRow(ev.clientY, col);
         const low = Math.min(startRow, row);
         const high = Math.max(startRow, row);
@@ -215,15 +212,7 @@ export function useAvailabilityCalendarPointerHandlers({
         endDrag();
       };
 
-      const moveOpts: AddEventListenerOptions = {
-        signal,
-        capture: true,
-        passive: false,
-      };
-      const endOpts: AddEventListenerOptions = { signal, capture: true };
-      document.addEventListener("pointermove", onMove, moveOpts);
-      document.addEventListener("pointerup", onUp, endOpts);
-      document.addEventListener("pointercancel", onUp, endOpts);
+      stopGesture = trackPointerGesture(pointerId, { onMove, onEnd: onUp });
     },
     [
       readOnly,
@@ -274,11 +263,10 @@ export function useAvailabilityCalendarPointerHandlers({
         columnEl: col,
       });
 
-      const ac = new AbortController();
-      const { signal } = ac;
+      let stopGesture = () => {};
 
       const endResize = () => {
-        ac.abort();
+        stopGesture();
         unlockCalendarTouchScroll();
         try {
           col.releasePointerCapture(pointerId);
@@ -288,7 +276,6 @@ export function useAvailabilityCalendarPointerHandlers({
       };
 
       const onMove = (ev: PointerEvent) => {
-        if (ev.pointerId !== pointerId) return;
         ev.preventDefault();
         const row = clientYToRow(ev.clientY, col);
         const prev = slotsRef.current;
@@ -343,8 +330,7 @@ export function useAvailabilityCalendarPointerHandlers({
         onSlotsChange(next);
       };
 
-      const onUp = (ev: PointerEvent) => {
-        if (ev.pointerId !== pointerId) return;
+      const onUp = () => {
         if (didResize) {
           const merged = mergeAdjacentSlots(slotsRef.current);
           slotsRef.current = merged;
@@ -353,15 +339,7 @@ export function useAvailabilityCalendarPointerHandlers({
         endResize();
       };
 
-      const moveOpts: AddEventListenerOptions = {
-        signal,
-        capture: true,
-        passive: false,
-      };
-      const endOpts: AddEventListenerOptions = { signal, capture: true };
-      document.addEventListener("pointermove", onMove, moveOpts);
-      document.addEventListener("pointerup", onUp, endOpts);
-      document.addEventListener("pointercancel", onUp, endOpts);
+      stopGesture = trackPointerGesture(pointerId, { onMove, onEnd: onUp });
     },
     [
       readOnly,
@@ -394,30 +372,25 @@ export function useAvailabilityCalendarPointerHandlers({
         const pointerDownClientX = e.clientX;
         const pointerDownClientY = e.clientY;
         let didMove = false;
+        // Declared here because this branch returns before the drag path's own.
+        let stopGesture = () => {};
 
-        const ac = new AbortController();
-        const opts: AddEventListenerOptions = {
-          signal: ac.signal,
-          capture: true,
-        };
-        const onReadOnlyMove = (ev: PointerEvent) => {
-          if (ev.pointerId !== pointerId || didMove) return;
-          const dx = ev.clientX - pointerDownClientX;
-          const dy = ev.clientY - pointerDownClientY;
-          if (dx * dx + dy * dy > CLICK_MOVEMENT_THRESHOLD_PX ** 2) {
-            didMove = true;
-          }
-        };
-        const onReadOnlyUp = (ev: PointerEvent) => {
-          if (ev.pointerId !== pointerId) return;
-          ac.abort();
-          if (!didMove && onSlotClickRef.current) {
-            onSlotClickRef.current(slot, ev);
-          }
-        };
-        document.addEventListener("pointermove", onReadOnlyMove, opts);
-        document.addEventListener("pointerup", onReadOnlyUp, opts);
-        document.addEventListener("pointercancel", onReadOnlyUp, opts);
+        stopGesture = trackPointerGesture(pointerId, {
+          onMove: (ev) => {
+            if (didMove) return;
+            const dx = ev.clientX - pointerDownClientX;
+            const dy = ev.clientY - pointerDownClientY;
+            if (dx * dx + dy * dy > CLICK_MOVEMENT_THRESHOLD_PX ** 2) {
+              didMove = true;
+            }
+          },
+          onEnd: (ev) => {
+            stopGesture();
+            if (!didMove && onSlotClickRef.current) {
+              onSlotClickRef.current(slot, ev);
+            }
+          },
+        });
         return;
       }
 
@@ -484,8 +457,7 @@ export function useAvailabilityCalendarPointerHandlers({
         el.style.cursor = "grabbing";
       }
 
-      const ac = new AbortController();
-      const { signal } = ac;
+      let stopGesture = () => {};
 
       const flushMoveGhostRaf = () => {
         if (moveGhostRafRef.current !== null) {
@@ -503,7 +475,7 @@ export function useAvailabilityCalendarPointerHandlers({
         for (const el of dayColumnEls()) {
           el.style.removeProperty("cursor");
         }
-        ac.abort();
+        stopGesture();
         unlockCalendarTouchScroll();
         try {
           col.releasePointerCapture(pointerId);
@@ -576,7 +548,6 @@ export function useAvailabilityCalendarPointerHandlers({
       };
 
       const onMove = (ev: PointerEvent) => {
-        if (ev.pointerId !== pointerId) return;
         ev.preventDefault();
         if (!didMove) {
           const dx = ev.clientX - pointerDownClientX;
@@ -589,7 +560,6 @@ export function useAvailabilityCalendarPointerHandlers({
       };
 
       const onUp = (ev: PointerEvent) => {
-        if (ev.pointerId !== pointerId) return;
         if (didMove) {
           const last = movePendingPointerRef.current;
           const cx = last?.x ?? ev.clientX;
@@ -604,15 +574,7 @@ export function useAvailabilityCalendarPointerHandlers({
         endMove();
       };
 
-      const moveOpts: AddEventListenerOptions = {
-        signal,
-        capture: true,
-        passive: false,
-      };
-      const endOpts: AddEventListenerOptions = { signal, capture: true };
-      document.addEventListener("pointermove", onMove, moveOpts);
-      document.addEventListener("pointerup", onUp, endOpts);
-      document.addEventListener("pointercancel", onUp, endOpts);
+      stopGesture = trackPointerGesture(pointerId, { onMove, onEnd: onUp });
     },
     [
       readOnly,

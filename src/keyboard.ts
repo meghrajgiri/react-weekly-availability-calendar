@@ -39,7 +39,7 @@ export function shiftSlotTime(
 }
 
 /** Duration limits applied on top of the grid window. */
-export interface DurationLimits {
+interface DurationLimits {
   minSlotMinutes?: number;
   maxSlotMinutes?: number;
 }

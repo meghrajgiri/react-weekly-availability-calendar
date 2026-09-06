@@ -186,7 +186,19 @@ export function useAvailabilityCalendarKeyboard({
           return false;
       }
     },
-    [readOnly, snapMinutes, bounds, orderedDays, slots, applyToSlot, commit]
+    [
+      readOnly,
+      snapMinutes,
+      bounds,
+      minSlotMinutes,
+      maxSlotMinutes,
+      orderedDays,
+      slots,
+      applyToSlot,
+      commit,
+      describeRange,
+      formatDayLabel,
+    ]
   );
 
   /**

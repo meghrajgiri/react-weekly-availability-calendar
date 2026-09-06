@@ -1,14 +1,14 @@
 import type { AvailabilitySlot } from "./types";
 
 /** Undo/redo stacks around the current slots. */
-export interface HistoryState {
+interface HistoryState {
   past: AvailabilitySlot[][];
   present: AvailabilitySlot[];
   future: AvailabilitySlot[][];
 }
 
 /** Actions accepted by {@link historyReducer}. */
-export type HistoryAction =
+type HistoryAction =
   | { type: "change"; slots: AvailabilitySlot[]; limit: number }
   | { type: "undo" }
   | { type: "redo" }
