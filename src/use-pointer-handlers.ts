@@ -39,7 +39,8 @@ interface UseAvailabilityCalendarPointerHandlersParams {
   orderedDays: DayOfWeek[];
   rowToMinutes: (rowIndex: number) => number;
   clientYToRow: (clientY: number, columnEl: HTMLElement) => number;
-  onSlotsChange: (next: AvailabilitySlot[]) => void;
+  /** Emits an edit along with the state it replaced, for the change delta. */
+  emitChange: (previous: AvailabilitySlot[], next: AvailabilitySlot[]) => void;
   onSlotClick?: (
     slot: AvailabilitySlot,
     event: PointerEvent | KeyboardEvent
@@ -72,7 +73,7 @@ export function useAvailabilityCalendarPointerHandlers({
   orderedDays,
   rowToMinutes,
   clientYToRow,
-  onSlotsChange,
+  emitChange,
   onSlotClick,
   slotsRef,
   canPlaceRef,
@@ -206,7 +207,7 @@ export function useAvailabilityCalendarPointerHandlers({
             const prev = slotsRef.current;
             const next = mergeAdjacentSlots([...prev, ...created]);
             slotsRef.current = next;
-            onSlotsChange(next);
+            emitChange(prev, next);
           }
         }
         endDrag();
@@ -223,7 +224,7 @@ export function useAvailabilityCalendarPointerHandlers({
       maxSlotMinutes,
       clientYToRow,
       rowToMinutes,
-      onSlotsChange,
+      emitChange,
       lockCalendarTouchScroll,
       unlockCalendarTouchScroll,
       canPlaceRef,
@@ -327,14 +328,15 @@ export function useAvailabilityCalendarPointerHandlers({
         );
         didResize = true;
         slotsRef.current = next;
-        onSlotsChange(next);
+        emitChange(prev, next);
       };
 
       const onUp = () => {
         if (didResize) {
-          const merged = mergeAdjacentSlots(slotsRef.current);
+          const beforeMerge = slotsRef.current;
+          const merged = mergeAdjacentSlots(beforeMerge);
           slotsRef.current = merged;
-          onSlotsChange(merged);
+          emitChange(beforeMerge, merged);
         }
         endResize();
       };
@@ -348,7 +350,7 @@ export function useAvailabilityCalendarPointerHandlers({
       clientYToRow,
       rowToMinutes,
       snapMinutes,
-      onSlotsChange,
+      emitChange,
       lockCalendarTouchScroll,
       unlockCalendarTouchScroll,
       canPlaceRef,
@@ -544,7 +546,7 @@ export function useAvailabilityCalendarPointerHandlers({
           )
         );
         slotsRef.current = next;
-        onSlotsChange(next);
+        emitChange(prev, next);
       };
 
       const onMove = (ev: PointerEvent) => {
@@ -580,7 +582,7 @@ export function useAvailabilityCalendarPointerHandlers({
       readOnly,
       startMinutes,
       endMinutes,
-      onSlotsChange,
+      emitChange,
       rowToMinutes,
       totalRows,
       orderedDays,

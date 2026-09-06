@@ -1,4 +1,4 @@
-import type { AvailabilitySlot, DayOfWeek } from "./types";
+import type { AvailabilitySlot, DayOfWeek, SlotChanges } from "./types";
 import { DAY_END_MINUTES, DAY_START_MINUTES } from "./constants";
 
 /** Generates a unique temporary ID for a newly created availability slot. */
@@ -300,6 +300,49 @@ export function overlaps(
   b: { start: number; end: number }
 ): boolean {
   return a.start < b.end && b.start < a.end;
+}
+
+/**
+ * Describes what one edit did, so a consumer does not have to diff the array.
+ *
+ * A merge shows up as an update plus a removal: the surviving slot's range
+ * grows, and the id it absorbed disappears.
+ */
+export function diffSlots(
+  previous: AvailabilitySlot[],
+  next: AvailabilitySlot[]
+): SlotChanges {
+  const before = new Map(previous.map((s) => [s.id, s]));
+  const after = new Map(next.map((s) => [s.id, s]));
+
+  const created: AvailabilitySlot[] = [];
+  const updated: AvailabilitySlot[] = [];
+  for (const slot of next) {
+    const prior = before.get(slot.id);
+    if (!prior) {
+      created.push(slot);
+    } else if (!sameSlot(prior, slot)) {
+      updated.push(slot);
+    }
+  }
+
+  const removed: (number | string)[] = [];
+  for (const slot of previous) {
+    if (!after.has(slot.id)) removed.push(slot.id);
+  }
+
+  return { created, updated, removed };
+}
+
+/** Shallow equality over every own key, so custom fields count as changes. */
+function sameSlot(a: AvailabilitySlot, b: AvailabilitySlot): boolean {
+  const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+  for (const key of keys) {
+    if (a[key as keyof AvailabilitySlot] !== b[key as keyof AvailabilitySlot]) {
+      return false;
+    }
+  }
+  return true;
 }
 
 /**

@@ -9,13 +9,14 @@ import {
   resolveHourRange,
 } from "./constants";
 import { getRowTopBorderClassName } from "./row-styles";
-import { daysBetween, formatClock, formatClockIntl } from "./utils";
+import { daysBetween, diffSlots, formatClock, formatClockIntl } from "./utils";
 import { useAvailabilityCalendarPlacement } from "./use-placement";
 import { useAvailabilityCalendarPointerHandlers } from "./use-pointer-handlers";
 import { useAvailabilityCalendarKeyboard } from "./use-keyboard-handlers";
 import { useCalendarGrid } from "./use-grid";
 
 import type {
+  AvailabilitySlot,
   AvailabilityCalendarProps,
   BlockedSlot,
   DayOfWeek,
@@ -54,6 +55,8 @@ export function useAvailabilityCalendar({
   classNames: userClassNames,
   renderSlot,
   renderBlockedSlot,
+  slotTooltip,
+  blockedSlotTooltip,
   onSlotClick,
 }: AvailabilityCalendarProps) {
   // Stable identities so the placement callbacks are not rebuilt every render.
@@ -74,6 +77,19 @@ export function useAvailabilityCalendar({
     useCalendarGrid(snapMinutes, startMinutes, endMinutes);
 
   const orderedDays = useMemo(() => getOrderedDays(startDay), [startDay]);
+
+  /**
+   * Single exit point for every edit. Takes the state before the change so the
+   * delta is computed where it is actually known — the handlers update
+   * `slotsRef` before emitting, so diffing against it afterwards would compare
+   * a value with itself.
+   */
+  const emitChange = useCallback(
+    (previous: AvailabilitySlot[], next: AvailabilitySlot[]) => {
+      onSlotsChange(next, diffSlots(previous, next));
+    },
+    [onSlotsChange]
+  );
 
   const { slotsRef, canPlaceRef } = useAvailabilityCalendarPlacement({
     slots,
@@ -107,7 +123,7 @@ export function useAvailabilityCalendar({
     orderedDays,
     rowToMinutes,
     clientYToRow,
-    onSlotsChange,
+    emitChange,
     onSlotClick,
     slotsRef,
     canPlaceRef,
@@ -123,12 +139,15 @@ export function useAvailabilityCalendar({
     [orderedDays, formatDayLabel]
   );
 
-  const removeSlot = (id: number | string) => {
-    if (readOnly) return;
-    const next = slots.filter((s) => s.id !== id);
-    slotsRef.current = next;
-    onSlotsChange(next);
-  };
+  const removeSlot = useCallback(
+    (id: number | string) => {
+      if (readOnly) return;
+      const next = slots.filter((s) => s.id !== id);
+      slotsRef.current = next;
+      emitChange(slots, next);
+    },
+    [readOnly, slots, slotsRef, emitChange]
+  );
 
   const formatTime = useCallback(
     (minutes: number) =>
@@ -151,7 +170,7 @@ export function useAvailabilityCalendar({
       formatDayLabel,
       slots,
       blockedSlots,
-      onSlotsChange,
+      emitChange,
       canPlaceRef,
     });
 
@@ -184,20 +203,27 @@ export function useAvailabilityCalendar({
     ]
   );
 
-  const createPreview =
-    drag?.kind === "create"
-      ? {
-          // Every day the preview covers. Computed as an explicit list rather
-          // than a truthiness check on the two endpoints: Sunday is 0, so
-          // `startDay && currentDay` would silently collapse any span touching
-          // Sunday back to a single day while the commit still created the
-          // full range.
-          days: daysBetween(drag.dayOfWeek, drag.currentDayOfWeek, orderedDays),
-          top: Math.min(drag.startRow, drag.currentRow) * ROW_HEIGHT_PX,
-          height:
-            (Math.abs(drag.currentRow - drag.startRow) + 1) * ROW_HEIGHT_PX,
-        }
-      : null;
+  const createPreview = useMemo(
+    () =>
+      drag?.kind !== "create"
+        ? null
+        : {
+            // Every day the preview covers. Computed as an explicit list rather
+            // than a truthiness check on the two endpoints: Sunday is 0, so
+            // `startDay && currentDay` would silently collapse any span touching
+            // Sunday back to a single day while the commit still created the
+            // full range.
+            days: daysBetween(
+              drag.dayOfWeek,
+              drag.currentDayOfWeek,
+              orderedDays
+            ),
+            top: Math.min(drag.startRow, drag.currentRow) * ROW_HEIGHT_PX,
+            height:
+              (Math.abs(drag.currentRow - drag.startRow) + 1) * ROW_HEIGHT_PX,
+          },
+    [drag, orderedDays]
+  );
 
   const moveGhostSlot =
     movePointerWorld && drag?.kind === "move"
@@ -219,6 +245,8 @@ export function useAvailabilityCalendar({
       userClassNames,
       renderSlot,
       renderBlockedSlot,
+      slotTooltip,
+      blockedSlotTooltip,
       onSlotClick,
       slots,
       blockedSlots,
@@ -272,6 +300,8 @@ export function useAvailabilityCalendar({
       readOnly,
       removeSlot,
       renderBlockedSlot,
+      slotTooltip,
+      blockedSlotTooltip,
       renderSlot,
       rowToMinutes,
       rowTopBorderClass,

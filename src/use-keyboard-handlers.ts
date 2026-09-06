@@ -33,7 +33,7 @@ interface UseKeyboardHandlersParams {
   formatDayLabel: (day: DayOfWeek) => string;
   slots: AvailabilitySlot[];
   blockedSlots: BlockedSlot[];
-  onSlotsChange: (next: AvailabilitySlot[]) => void;
+  emitChange: (previous: AvailabilitySlot[], next: AvailabilitySlot[]) => void;
   canPlaceRef: {
     current: (
       day: number,
@@ -69,7 +69,7 @@ export function useAvailabilityCalendarKeyboard({
   formatDayLabel,
   slots,
   blockedSlots,
-  onSlotsChange,
+  emitChange,
   canPlaceRef,
 }: UseKeyboardHandlersParams) {
   // Announced politely so a screen reader reports the result of each edit;
@@ -99,10 +99,10 @@ export function useAvailabilityCalendarKeyboard({
 
   const commit = useCallback(
     (next: AvailabilitySlot[], message: string) => {
-      onSlotsChange(mergeAdjacentSlots(next));
+      emitChange(slots, mergeAdjacentSlots(next));
       setAnnouncement(message);
     },
-    [onSlotsChange, setAnnouncement]
+    [emitChange, slots, setAnnouncement]
   );
 
   /** Applies a proposed change to one slot, if it fits. */

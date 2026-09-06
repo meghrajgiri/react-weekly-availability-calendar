@@ -5,7 +5,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AvailabilityCalendar } from "./availability-calendar";
 import { ROW_HEIGHT_PX } from "./constants";
-import type { AvailabilityCalendarProps, AvailabilitySlot } from "./types";
+import type {
+  AvailabilityCalendarProps,
+  AvailabilitySlot,
+  SlotChanges,
+} from "./types";
 
 /**
  * These run in a real browser on purpose.
@@ -22,16 +26,16 @@ function Harness({
   ...props
 }: {
   initial?: AvailabilitySlot[];
-  onChange?: (next: AvailabilitySlot[]) => void;
+  onChange?: (next: AvailabilitySlot[], changes: SlotChanges) => void;
 } & Partial<AvailabilityCalendarProps>) {
   const [slots, setSlots] = useState<AvailabilitySlot[]>(initial);
   return (
     <div style={{ height: 700, width: 900 }}>
       <AvailabilityCalendar
         slots={slots}
-        onSlotsChange={(next) => {
+        onSlotsChange={(next, changes) => {
           setSlots(next);
-          onChange?.(next);
+          onChange?.(next, changes);
         }}
         snapMinutes={60}
         timeFormat="24"
@@ -972,5 +976,169 @@ describe("live region wording", () => {
     const cols = await readyColumns();
     // A disabled column has no add button, so drive it through a slot-free day.
     expect(cols[1].querySelectorAll("[data-add-slot]")).toHaveLength(0);
+  });
+});
+
+describe("change delta", () => {
+  it("reports a creation with the new slot", async () => {
+    const onChange = vi.fn();
+    render(<Harness onChange={onChange} />);
+    const cols = await readyColumns();
+    await drag(cols[1], rowPoint(cols[1], 0), rowPoint(cols[1], 2));
+
+    const changes = onChange.mock.lastCall![1];
+    expect(changes.created).toHaveLength(1);
+    expect(changes.created[0]).toMatchObject({ startTime: "09:00" });
+    expect(changes.removed).toEqual([]);
+  });
+
+  it("reports a keyboard move as an update, keeping the id", async () => {
+    const onChange = vi.fn();
+    render(
+      <Harness
+        onChange={onChange}
+        initial={[
+          { id: "a", dayOfWeek: 1, startTime: "10:00", endTime: "11:00" },
+        ]}
+      />
+    );
+    await readyColumns();
+    document.querySelector<HTMLElement>("[data-availability-block]")!.focus();
+    await userEvent.keyboard("{ArrowDown}");
+
+    const changes = onChange.mock.lastCall![1];
+    expect(changes.updated.map((s: AvailabilitySlot) => s.id)).toEqual(["a"]);
+    expect(changes.created).toEqual([]);
+    expect(changes.removed).toEqual([]);
+  });
+
+  it("reports a removal", async () => {
+    const onChange = vi.fn();
+    render(
+      <Harness
+        onChange={onChange}
+        initial={[
+          { id: "a", dayOfWeek: 1, startTime: "10:00", endTime: "11:00" },
+        ]}
+      />
+    );
+    await readyColumns();
+    await userEvent.click(
+      document.querySelector<HTMLElement>('[aria-label="Remove slot"]')!
+    );
+
+    expect(onChange.mock.lastCall![1].removed).toEqual(["a"]);
+  });
+
+  it("reports a merge as an update plus a removal", async () => {
+    const onChange = vi.fn();
+    render(
+      <Harness
+        onChange={onChange}
+        initial={[
+          { id: "first", dayOfWeek: 1, startTime: "09:00", endTime: "10:00" },
+          { id: "second", dayOfWeek: 1, startTime: "11:00", endTime: "12:00" },
+        ]}
+      />
+    );
+    await readyColumns();
+    // Move "second" up so it meets "first" and the two merge.
+    document
+      .querySelectorAll<HTMLElement>("[data-availability-block]")[1]
+      .focus();
+    await userEvent.keyboard("{ArrowUp}");
+
+    const changes = onChange.mock.lastCall![1];
+    expect(changes.removed).toEqual(["second"]);
+    expect(changes.updated.map((s: AvailabilitySlot) => s.id)).toEqual([
+      "first",
+    ]);
+  });
+});
+
+describe("tooltips", () => {
+  it("describes a slot by default", async () => {
+    render(
+      <Harness
+        initial={[
+          { id: "a", dayOfWeek: 1, startTime: "10:00", endTime: "11:00" },
+        ]}
+      />
+    );
+    await readyColumns();
+    const title = document
+      .querySelector("[data-availability-block]")!
+      .getAttribute("title")!;
+    expect(title).toContain("Mon");
+    expect(title).toContain("10:00");
+    expect(title).toContain("11:00");
+  });
+
+  it("follows timeFormat rather than emitting raw HH:mm", async () => {
+    render(
+      <Harness
+        timeFormat="12"
+        initial={[
+          { id: "a", dayOfWeek: 1, startTime: "13:00", endTime: "14:00" },
+        ]}
+      />
+    );
+    await readyColumns();
+    const title = document
+      .querySelector("[data-availability-block]")!
+      .getAttribute("title")!;
+    expect(title.toUpperCase()).toContain("PM");
+    expect(title).not.toContain("13:00");
+  });
+
+  it("lets a consumer replace the text", async () => {
+    render(
+      <Harness
+        slotTooltip={(slot) => `custom ${String(slot.id)}`}
+        initial={[
+          { id: "a", dayOfWeek: 1, startTime: "10:00", endTime: "11:00" },
+        ]}
+      />
+    );
+    await readyColumns();
+    expect(
+      document.querySelector("[data-availability-block]")!.getAttribute("title")
+    ).toBe("custom a");
+  });
+
+  it("lets a consumer suppress it entirely", async () => {
+    render(
+      <Harness
+        slotTooltip={() => null}
+        initial={[
+          { id: "a", dayOfWeek: 1, startTime: "10:00", endTime: "11:00" },
+        ]}
+      />
+    );
+    await readyColumns();
+    expect(
+      document.querySelector("[data-availability-block]")!.hasAttribute("title")
+    ).toBe(false);
+  });
+
+  it("describes a blocked slot, whose label is often truncated", async () => {
+    render(
+      <Harness
+        blockedSlots={[
+          {
+            dayOfWeek: 1,
+            startTime: "12:00",
+            endTime: "13:00",
+            label: "A very long meeting name",
+          },
+        ]}
+      />
+    );
+    await readyColumns();
+    const title = document
+      .querySelector(".ac-blocked-slot")!
+      .getAttribute("title")!;
+    expect(title).toContain("A very long meeting name");
+    expect(title).toContain("12:00");
   });
 });

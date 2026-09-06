@@ -20,5 +20,6 @@ export type {
   CalendarClassNames,
   CalendarTheme,
   DayOfWeek,
+  SlotChanges,
   SlotRenderInfo,
 } from "./types";
