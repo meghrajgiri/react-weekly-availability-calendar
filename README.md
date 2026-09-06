@@ -82,6 +82,28 @@ at a ten-minute snap — which would leave a screen-reader user traversing all o
 them to reach a handful of slots. Slots and day columns are exposed as labelled
 buttons instead.
 
+## Slots that touch are merged
+
+When an edit leaves two slots touching or overlapping, they are merged into one.
+The merge keeps the fields — **including the `id`** — of the slot that starts
+earliest:
+
+```tsx
+// before
+[
+  { id: "a", dayOfWeek: 1, startTime: "09:00", endTime: "10:00" },
+  { id: "b", dayOfWeek: 1, startTime: "10:00", endTime: "11:00" },
+][
+  // after onSlotsChange — one slot, and "b" is gone
+  { id: "a", dayOfWeek: 1, startTime: "09:00", endTime: "11:00" }
+];
+```
+
+This applies to every path: dragging, resizing, and keyboard edits. Treat the
+array `onSlotsChange` hands you as a **fresh statement of the week's
+availability**, not as a diff against what you passed in — reconciling it by id
+will lose merged slots.
+
 ## End-of-day slots and storage
 
 A slot running to midnight ends at `"24:00"`. That is deliberate, and matches

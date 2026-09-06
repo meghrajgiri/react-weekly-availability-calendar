@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-09-06
+
+### Fixed
+
+- Screen-reader announcements no longer report raw data. Moving a slot
+  across days announced `Moved to day 3` rather than naming the day, and
+  every time was announced as 24-hour `HH:mm` regardless of `timeFormat`
+  and `locale` — so a 12-hour German calendar displayed `2:30 PM` and said
+  `14:30`. Announcements now use the same day labels and clock formatting
+  as the calendar itself.
+- A repeated identical announcement is spoken again. Setting the same
+  message twice bailed out of the re-render, so the live region never
+  changed and stayed silent — holding an arrow key against a blocked slot
+  announced once and then nothing, which is indistinguishable from the
+  component hanging.
+
+### Changed
+
+- Documented that slots which touch or overlap are merged, and that a merge
+  keeps the earliest slot's fields including its `id`. This is the most
+  surprising behaviour in the API and it was documented nowhere
+  user-facing.
+- Added TSDoc to `slots`, `onSlotsChange`, `snapMinutes` and `timeFormat`.
+  The four required props were the only undocumented ones, and since the
+  Storybook API table is generated from TSDoc they rendered blank.
+- Declared `engines.node >= 18`; CI now also builds the docs site and
+  Storybook, which previously could break without failing a required check.
+
 ## [1.5.0] - 2026-09-06
 
 ### Added
@@ -258,7 +286,8 @@ No runtime changes — the published bundle is byte-identical to 1.2.0.
 
 - Initial public releases.
 
-[Unreleased]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.5.1...HEAD
+[1.5.1]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.4.1...v1.5.0
 [1.4.1]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.3.0...v1.4.0
