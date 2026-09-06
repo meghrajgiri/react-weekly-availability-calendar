@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-09-06
+
+### Fixed
+
+- The package no longer ships a stray `dist/index.css` and its sourcemap.
+  Extracting the stylesheet in 1.5.2 made esbuild emit a standalone CSS
+  file as well as inlining it, and nothing referenced it — the styles are
+  injected at runtime and `exports` only maps the JS — so 32 kB of dead
+  weight went into every install of 1.5.2 and 1.6.0. The build now removes
+  it, and fails loudly if the inlined copy ever goes missing.
+- The documentation site is properly responsive on phones. The brand
+  wrapped to two lines in the header, which doubled its height and squeezed
+  the theme toggle to 10px wide, and the page scrolled horizontally at
+  320px. Controls now meet the 44px touch target on coarse pointers, the
+  install command stays on one row, and the hero is tightened so the live
+  demo is reachable rather than buried under a screenful of type.
+- Site demos open on working hours instead of midnight, so the first thing
+  visible is slots rather than empty night rows. The code samples were
+  updated to match, so what is shown is still what you would copy.
+
 ## [1.6.0] - 2026-09-06
 
 ### Added
@@ -332,7 +352,8 @@ No runtime changes — the published bundle is byte-identical to 1.2.0.
 
 - Initial public releases.
 
-[Unreleased]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.6.0...HEAD
+[Unreleased]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.6.1...HEAD
+[1.6.1]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.6.0...v1.6.1
 [1.6.0]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.5.2...v1.6.0
 [1.5.2]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.5.1...v1.5.2
 [1.5.1]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.5.0...v1.5.1

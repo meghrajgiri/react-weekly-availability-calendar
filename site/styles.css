@@ -89,9 +89,15 @@ code {
   display: flex;
   align-items: center;
   gap: 1.25rem;
-  height: 58px;
+  min-height: 58px;
 }
 .nav-brand {
+  /* Was wrapping to two lines on a phone, doubling the nav height and
+     squeezing the theme toggle down to 10px wide. */
+  white-space: nowrap;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-weight: 650;
   color: var(--fg);
   letter-spacing: -0.01em;
@@ -111,17 +117,32 @@ code {
   flex-shrink: 0;
 }
 .nav a.nav-link {
+  display: inline-flex;
+  align-items: center;
+  /* 44px is the minimum comfortable touch target. */
+  min-height: 44px;
   color: var(--fg-muted);
   font-size: 0.9rem;
   font-weight: 500;
+  white-space: nowrap;
 }
 .nav a.nav-link:hover {
   color: var(--fg);
   text-decoration: none;
 }
-@media (max-width: 720px) {
-  .nav-link--hide-sm {
+@media (max-width: 780px) {
+  .nav a.nav-link--hide-sm {
     display: none;
+  }
+}
+/* Below this the bar cannot hold every link. GitHub is the one people want
+   from a package page; the rest stay in the footer. */
+@media (max-width: 560px) {
+  .nav a.nav-link--hide-xs {
+    display: none;
+  }
+  .nav-inner {
+    gap: 0.9rem;
   }
 }
 
@@ -129,8 +150,10 @@ code {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  /* Fixed so flex cannot compress it — it was collapsing to 10px wide. */
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
   border-radius: 8px;
   border: 1px solid var(--border);
   background: var(--bg);
@@ -162,7 +185,7 @@ code {
 }
 .hero h1 {
   margin: 0 0 0.9rem;
-  font-size: clamp(2.1rem, 5.5vw, 3.3rem);
+  font-size: clamp(1.75rem, 7vw, 3.3rem);
   line-height: 1.08;
   letter-spacing: -0.033em;
   font-weight: 700;
@@ -182,9 +205,10 @@ code {
   align-items: center;
 }
 .install {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 0.75rem;
+  max-width: 100%;
+  gap: 0.6rem;
   background: var(--bg-code);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -196,8 +220,19 @@ code {
 .install .prompt {
   color: var(--fg-faint);
   user-select: none;
+  flex: 0 0 auto;
+}
+.install-cmd {
+  /* Takes the middle so the prompt and Copy stay on one row and only the
+     command itself wraps. Wrapping all three stacked them into a tall block. */
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--fg-muted);
@@ -208,6 +243,13 @@ code {
   font-weight: 550;
   cursor: pointer;
   min-width: 56px;
+  min-height: 36px;
+  flex: 0 0 auto;
+}
+@media (max-width: 640px) {
+  .copy-btn {
+    min-height: 44px;
+  }
 }
 .copy-btn:hover {
   color: var(--fg);
@@ -262,6 +304,14 @@ code {
   font-size: 0.78rem;
   color: var(--fg-faint);
 }
+
+/* Declared before the media query that reveals it, or the base rule wins. */
+.demo-hint--short {
+  display: none;
+  margin-left: auto;
+  font-size: 0.78rem;
+  color: var(--fg-faint);
+}
 .demo-body {
   padding: 0.9rem;
   height: 460px;
@@ -271,6 +321,58 @@ code {
   .demo-body {
     height: 400px;
     padding: 0.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero {
+    padding: 1.75rem 0 1.25rem;
+  }
+  .hero p.lede {
+    margin-bottom: 1.25rem;
+  }
+  .badge {
+    margin-bottom: 0.75rem;
+  }
+  .cta-row {
+    gap: 0.5rem;
+  }
+  .install {
+    width: 100%;
+    font-size: 0.8rem;
+  }
+  .btn {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+  .demo {
+    margin-top: 1.5rem;
+  }
+  /* Tall enough to be usable, short enough that the page below is discoverable. */
+  .demo-body {
+    height: 62vh;
+    min-height: 300px;
+    max-height: 460px;
+  }
+  .demo-hint {
+    display: none;
+  }
+  .demo-hint--short {
+    display: inline;
+  }
+  .wrap {
+    padding: 0 1rem;
+  }
+  .section {
+    padding: 2rem 0 0.5rem;
+  }
+  .features {
+    margin: 2.25rem 0;
+  }
+  .example-body {
+    height: 60vh;
+    min-height: 300px;
+    max-height: 430px;
   }
 }
 
@@ -348,6 +450,8 @@ code {
   flex: 1 1 260px;
 }
 .toggle-code {
+  display: inline-flex;
+  align-items: center;
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--fg-muted);
@@ -357,6 +461,7 @@ code {
   font-weight: 550;
   cursor: pointer;
   white-space: nowrap;
+  min-height: 36px;
 }
 .toggle-code:hover {
   color: var(--fg);
@@ -381,6 +486,8 @@ code {
   color: var(--fg-muted);
 }
 .ctl {
+  display: inline-flex;
+  align-items: center;
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--fg);
@@ -389,6 +496,7 @@ code {
   font-size: 0.8rem;
   font-weight: 540;
   cursor: pointer;
+  min-height: 36px;
 }
 .ctl:hover:not(:disabled) {
   border-color: var(--fg-faint);
@@ -456,6 +564,28 @@ td.desc {
   color: var(--fg);
   font-weight: 600;
   font-size: 0.78rem;
+}
+
+/* Coarse pointers get the full 44px target; a mouse does not need it. */
+@media (pointer: coarse) {
+  .toggle-code,
+  .ctl,
+  .btn,
+  .nav-brand,
+  .footer-links a {
+    min-height: 44px;
+  }
+  .nav a.nav-link {
+    padding: 0 0.25rem;
+  }
+  .nav-brand {
+    display: inline-flex;
+    align-items: center;
+  }
+  .footer-links a {
+    display: inline-flex;
+    align-items: center;
+  }
 }
 
 /* ── Footer ──────────────────────────────────────────── */

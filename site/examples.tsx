@@ -60,6 +60,8 @@ function Basic({ dark }: { dark: boolean }) {
       onSlotsChange={setSlots}
       blockedSlots={seedBlocked}
       snapMinutes={30}
+      startHour={8}
+      endHour={20}
       timeFormat="12"
       theme={dark ? darkTheme : undefined}
     />
@@ -74,6 +76,8 @@ function ReadOnly({ dark }: { dark: boolean }) {
       onSlotsChange={setSlots}
       blockedSlots={seedBlocked}
       snapMinutes={30}
+      startHour={8}
+      endHour={20}
       timeFormat="12"
       readOnly
       theme={dark ? darkTheme : undefined}
@@ -89,6 +93,8 @@ function Coloured({ dark }: { dark: boolean }) {
       onSlotsChange={setSlots}
       blockedSlots={seedBlocked}
       snapMinutes={30}
+      startHour={8}
+      endHour={20}
       timeFormat="12"
       theme={dark ? darkTheme : undefined}
     />
@@ -119,6 +125,8 @@ function Localised({ dark }: { dark: boolean }) {
       onSlotsChange={setSlots}
       blockedSlots={seedBlocked}
       snapMinutes={30}
+      startHour={8}
+      endHour={20}
       timeFormat="24"
       locale="de-DE"
       startDay={1}
@@ -135,6 +143,8 @@ function MultiDay({ dark }: { dark: boolean }) {
       onSlotsChange={setSlots}
       blockedSlots={seedBlocked}
       snapMinutes={30}
+      startHour={8}
+      endHour={20}
       timeFormat="12"
       multiDayCreate
       theme={dark ? darkTheme : undefined}
@@ -150,6 +160,8 @@ function CustomRender({ dark }: { dark: boolean }) {
       onSlotsChange={setSlots}
       blockedSlots={seedBlocked}
       snapMinutes={30}
+      startHour={8}
+      endHour={20}
       timeFormat="24"
       startDay={1}
       dayLabelFormat="long"
@@ -201,6 +213,8 @@ function ClickToInspect({ dark }: { dark: boolean }) {
           onSlotsChange={setSlots}
           blockedSlots={seedBlocked}
           snapMinutes={30}
+          startHour={8}
+          endHour={20}
           timeFormat="12"
           onSlotClick={(slot) => setLast(slot)}
           theme={dark ? darkTheme : undefined}
@@ -243,6 +257,8 @@ function UndoRedo({ dark }: { dark: boolean }) {
           onSlotsChange={onSlotsChange}
           blockedSlots={seedBlocked}
           snapMinutes={30}
+          startHour={8}
+          endHour={20}
           timeFormat="12"
           theme={dark ? darkTheme : undefined}
         />
@@ -277,6 +293,8 @@ export const examples: Example[] = [
   ]}
   snapMinutes={30}
   timeFormat="12"
+  startHour={8}
+  endHour={20}
 />`,
     render: body(Basic),
   },
@@ -323,6 +341,8 @@ export const examples: Example[] = [
   onSlotsChange={onSlotsChange}
   snapMinutes={30}
   timeFormat="12"
+  startHour={8}
+  endHour={20}
 />`,
     render: (dark) => <UndoRedo dark={dark} />,
   },
@@ -336,6 +356,8 @@ export const examples: Example[] = [
   onSlotsChange={setSlots}
   snapMinutes={30}
   timeFormat="12"
+  startHour={8}
+  endHour={20}
   multiDayCreate
 />`,
     render: body(MultiDay),
@@ -350,6 +372,8 @@ export const examples: Example[] = [
   onSlotsChange={setSlots}
   snapMinutes={30}
   timeFormat="24"
+  startHour={8}
+  endHour={20}
   locale="de-DE"
   startDay={1}
 />`,
@@ -365,6 +389,8 @@ export const examples: Example[] = [
   onSlotsChange={setSlots}
   snapMinutes={30}
   timeFormat="12"
+  startHour={8}
+  endHour={20}
   readOnly
 />`,
     render: body(ReadOnly),
@@ -379,6 +405,8 @@ export const examples: Example[] = [
   onSlotsChange={setSlots}
   snapMinutes={30}
   timeFormat="12"
+  startHour={8}
+  endHour={20}
   onSlotClick={(slot, event) => openDetails(slot)}
 />`,
     render: (dark) => <ClickToInspect dark={dark} />,
@@ -393,6 +421,8 @@ export const examples: Example[] = [
   onSlotsChange={setSlots}
   snapMinutes={30}
   timeFormat="24"
+  startHour={8}
+  endHour={20}
   startDay={1}
   dayLabelFormat="long"
   gridLineStyle="dotted"
