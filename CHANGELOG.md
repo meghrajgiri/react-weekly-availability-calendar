@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.2] - 2026-09-06
+
+### Changed
+
+- The bundle is 16% smaller: 76.6 KB to 64.2 KB for ESM, 13.4 KB gzipped.
+  Treeshaking had been disabled since 1.0.1 because tsup's treeshake step
+  strips banners and the `"use client"` directive has to survive. The
+  directive is now prepended after the build instead, so both work.
+- Styles moved out of a 635-line template literal into a real `styles.css`,
+  which editors, Prettier and stylelint can all understand. It is still
+  inlined into the bundle and injected at runtime, so consumers import no
+  stylesheet.
+- Pointer gestures share one `trackPointerGesture` helper rather than each
+  drag repeating its own listener registration, pointer-id filtering and
+  teardown. Removes four near-identical blocks and the class of bug they
+  invite, where a gesture outlives the pointer that started it.
+- The model returned by `useAvailabilityCalendar` is memoised, so the grid
+  and drag ghost can be memoised in turn.
+- Removed the monthly-downloads badge from the README.
+- Internal types (`DurationLimits`, `HistoryState`, `HistoryAction`) are no
+  longer exported.
+
 ## [1.5.1] - 2026-09-06
 
 ### Fixed
@@ -286,7 +308,8 @@ No runtime changes — the published bundle is byte-identical to 1.2.0.
 
 - Initial public releases.
 
-[Unreleased]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.5.1...HEAD
+[Unreleased]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.5.2...HEAD
+[1.5.2]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.5.1...v1.5.2
 [1.5.1]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.4.1...v1.5.0
 [1.4.1]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.4.0...v1.4.1
