@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-09-06
+
+### Added
+
+- `onSlotsChange` receives a second argument describing what the edit did:
+  `{ created, updated, removed }`. Consumers can issue targeted writes
+  instead of re-saving the whole week or diffing the array themselves.
+  Purely additive — ignore it and the callback behaves as before.
+
+  A merge is reported as an update plus a removal, since the surviving slot
+  grows and the absorbed id ceases to exist. That is precisely the case a
+  hand-rolled diff tends to get wrong.
+- Tooltips. Slots and blocked ranges now carry a native `title` describing
+  the day, time range and duration. A slot at a small snap increment can be
+  a couple of rows tall, where its own labels are unreadable, and long
+  blocked labels are truncated. `slotTooltip` and `blockedSlotTooltip`
+  override the text; returning `null` suppresses it.
+- `SlotChanges` is exported.
+
+### Fixed
+
+- `removeSlot` and the create preview are memoised. Both were rebuilt every
+  render, which defeated the model memoisation added in 1.5.2.
+
 ## [1.5.2] - 2026-09-06
 
 ### Changed
@@ -308,7 +332,8 @@ No runtime changes — the published bundle is byte-identical to 1.2.0.
 
 - Initial public releases.
 
-[Unreleased]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.5.2...HEAD
+[Unreleased]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.5.2...v1.6.0
 [1.5.2]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.5.1...v1.5.2
 [1.5.1]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/meghrajgiri/react-weekly-availability-calendar/compare/v1.4.1...v1.5.0

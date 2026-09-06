@@ -46,6 +46,8 @@ const meta = {
     startHour: { control: { type: "range", min: 0, max: 23, step: 1 } },
     endHour: { control: { type: "range", min: 1, max: 24, step: 1 } },
     slots: { control: false },
+    slotTooltip: { control: false },
+    blockedSlotTooltip: { control: false },
     onSlotsChange: { control: false },
     renderSlot: { control: false },
     renderBlockedSlot: { control: false },
@@ -61,9 +63,9 @@ const meta = {
       <AvailabilityCalendar
         {...args}
         slots={current}
-        onSlotsChange={(next) => {
+        onSlotsChange={(next, changes) => {
           setCurrent(next);
-          args.onSlotsChange?.(next);
+          args.onSlotsChange?.(next, changes);
         }}
       />
     );
@@ -186,4 +188,19 @@ export const ClassNames: Story = {
  */
 export const KeyboardOperation: Story = {
   args: { slots, startHour: 9, endHour: 17 },
+};
+
+/**
+ * Hover a slot to see its default tooltip — helpful when a slot is too short to
+ * show its own labels. Pass `slotTooltip` to replace the text, or return `null`
+ * to suppress it.
+ */
+export const Tooltips: Story = {
+  args: {
+    slots,
+    blockedSlots: blocked,
+    snapMinutes: 10,
+    startHour: 9,
+    endHour: 13,
+  },
 };

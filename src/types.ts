@@ -27,6 +27,22 @@ export interface BlockedSlot {
   label: string;
 }
 
+/**
+ * What a single edit did, handed to `onSlotsChange` alongside the new array.
+ *
+ * Lets a consumer issue targeted writes instead of re-saving the week. Note
+ * that a merge appears as an update plus a removal, because the surviving slot
+ * grows and the absorbed id ceases to exist.
+ */
+export interface SlotChanges {
+  /** Slots present now that were not there before. */
+  created: AvailabilitySlot[];
+  /** Slots whose id existed before but whose fields changed. */
+  updated: AvailabilitySlot[];
+  /** Ids that no longer exist, whether removed outright or merged away. */
+  removed: (number | string)[];
+}
+
 /** Info passed to custom slot renderers */
 export interface SlotRenderInfo {
   startLabel: string;
@@ -128,8 +144,20 @@ export interface AvailabilityCalendarProps {
    *
    * A slot running to midnight ends at `"24:00"`. See `toStorageSlots` if your
    * storage rejects hour 24.
+   *
+   * The second argument describes what the edit did, so you can issue targeted
+   * writes instead of re-saving the week. Ignore it and the callback behaves
+   * exactly as before.
+   *
+   * @example
+   * onSlotsChange={(next, { created, updated, removed }) => {
+   *   setSlots(next);
+   *   created.forEach((s) => api.post("/slots", s));
+   *   updated.forEach((s) => api.patch(`/slots/${s.id}`, s));
+   *   removed.forEach((id) => api.delete(`/slots/${id}`));
+   * }}
    */
-  onSlotsChange: (next: AvailabilitySlot[]) => void;
+  onSlotsChange: (next: AvailabilitySlot[], changes: SlotChanges) => void;
   /** Non-interactive busy ranges, drawn behind the slots with a striped fill. */
   blockedSlots?: BlockedSlot[];
   /**
@@ -209,6 +237,27 @@ export interface AvailabilityCalendarProps {
   theme?: CalendarTheme;
   /** Class name overrides for individual parts (great for Tailwind) */
   classNames?: CalendarClassNames;
+
+  /**
+   * Tooltip text for an availability slot.
+   *
+   * A slot at a small snap increment can be only a couple of rows tall, where
+   * its own labels are unreadable, so one is shown by default: the day, the
+   * time range and the duration. Return your own string to replace it, or
+   * `null` to suppress it.
+   *
+   * Rendered as a native `title`, so there is no positioning logic, no extra
+   * dependency, and it works the way users already expect.
+   *
+   * @example
+   * slotTooltip={(slot, info) => `${info.startLabel}–${info.endLabel} (${slot.id})`}
+   */
+  slotTooltip?: (slot: AvailabilitySlot, info: SlotRenderInfo) => string | null;
+  /**
+   * Tooltip text for a blocked slot. Defaults to its label and time range,
+   * which matters because long labels are truncated. Return `null` to suppress.
+   */
+  blockedSlotTooltip?: (slot: BlockedSlot) => string | null;
 
   /** Custom render for availability slot content. Return ReactNode to replace default UI. */
   renderSlot?: (slot: AvailabilitySlot, info: SlotRenderInfo) => ReactNode;

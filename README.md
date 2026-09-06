@@ -81,6 +81,45 @@ at a ten-minute snap — which would leave a screen-reader user traversing all o
 them to reach a handful of slots. Slots and day columns are exposed as labelled
 buttons instead.
 
+## Knowing what changed
+
+`onSlotsChange` receives a description of the edit as its second argument, so
+you can issue targeted writes instead of re-saving the week:
+
+```tsx
+<AvailabilityCalendar
+  slots={slots}
+  onSlotsChange={(next, { created, updated, removed }) => {
+    setSlots(next);
+    created.forEach((s) => api.post("/slots", s));
+    updated.forEach((s) => api.patch(`/slots/${s.id}`, s));
+    removed.forEach((id) => api.delete(`/slots/${id}`));
+  }}
+  snapMinutes={30}
+  timeFormat="12"
+/>
+```
+
+Ignore the second argument and nothing changes — it is purely additive.
+
+A merge appears as an **update plus a removal**: the surviving slot's range
+grows and the absorbed id is reported as removed, which is exactly what a
+backend needs to hear.
+
+## Tooltips
+
+Slots and blocked ranges carry a native `title` by default — useful because a
+slot at a small snap increment can be too short to show its own labels, and long
+blocked labels are truncated. Override or suppress it:
+
+```tsx
+<AvailabilityCalendar
+  slotTooltip={(slot, info) => `${info.startLabel}–${info.endLabel}`}
+  blockedSlotTooltip={(slot) => slot.label}
+  // return null from either to remove the tooltip
+/>
+```
+
 ## Slots that touch are merged
 
 When an edit leaves two slots touching or overlapping, they are merged into one.
@@ -141,16 +180,16 @@ from the TypeScript types, so it never drifts from the source:
 
 ### At a glance
 
-|                  |                                                                       |
-| ---------------- | --------------------------------------------------------------------- |
-| **Required**     | `slots`, `onSlotsChange`, `snapMinutes`, `timeFormat`                 |
-| **Range**        | `startHour`, `endHour` — show only the hours you schedule in          |
-| **Week**         | `startDay`, `dayLabelFormat`, `locale`, `gridLineStyle`               |
-| **Behaviour**    | `readOnly`, `multiDayCreate`, `onSlotClick`, `blockedSlots`           |
-| **Limits**       | `disabledDays`, `minSlotMinutes`, `maxSlotMinutes`                    |
-| **Styling**      | `theme` (plus the `darkTheme` preset), `classNames`, per-slot `color` |
-| **Render props** | `renderSlot`, `renderBlockedSlot`                                     |
-| **Hook**         | `useAvailabilityHistory` for undo / redo                              |
+|                  |                                                                        |
+| ---------------- | ---------------------------------------------------------------------- |
+| **Required**     | `slots`, `onSlotsChange`, `snapMinutes`, `timeFormat`                  |
+| **Range**        | `startHour`, `endHour` — show only the hours you schedule in           |
+| **Week**         | `startDay`, `dayLabelFormat`, `locale`, `gridLineStyle`                |
+| **Behaviour**    | `readOnly`, `multiDayCreate`, `onSlotClick`, `blockedSlots`            |
+| **Limits**       | `disabledDays`, `minSlotMinutes`, `maxSlotMinutes`                     |
+| **Styling**      | `theme` (plus the `darkTheme` preset), `classNames`, per-slot `color`  |
+| **Render props** | `renderSlot`, `renderBlockedSlot`, `slotTooltip`, `blockedSlotTooltip` |
+| **Hook**         | `useAvailabilityHistory` for undo / redo                               |
 
 Types are exported for all of the above, and every prop carries TSDoc — your
 editor will show the same descriptions Storybook does.

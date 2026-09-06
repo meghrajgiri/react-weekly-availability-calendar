@@ -44,6 +44,8 @@ export function AvailabilityCalendarGrid({
     userClassNames: cx,
     renderSlot,
     renderBlockedSlot,
+    slotTooltip,
+    blockedSlotTooltip,
     onSlotClick,
     handleGridPointerDown,
     handleResizePointerDown,
@@ -248,6 +250,14 @@ export function AvailabilityCalendarGrid({
                           return (
                             <div
                               key={`blocked-${dayOfWeek}-${blockedIndex}`}
+                              // Long labels are truncated, so the full text is
+                              // worth having on hover by default.
+                              title={
+                                (blockedSlotTooltip
+                                  ? blockedSlotTooltip(b)
+                                  : `${b.label} · ${formatTime(sm)}–${formatTime(em)}`) ??
+                                undefined
+                              }
                               className={cn("ac-blocked-slot", cx?.blockedSlot)}
                               style={{
                                 top,
@@ -306,13 +316,14 @@ export function AvailabilityCalendarGrid({
                             </>
                           );
 
+                          const slotInfo = {
+                            startLabel: startLbl,
+                            endLabel: endLbl,
+                            durationLabel,
+                            isCompact: isCompactSlot,
+                          };
                           const customContent = renderSlot
-                            ? renderSlot(s, {
-                                startLabel: startLbl,
-                                endLabel: endLbl,
-                                durationLabel,
-                                isCompact: isCompactSlot,
-                              })
+                            ? renderSlot(s, slotInfo)
                             : null;
 
                           const handleSlotKeyboardActivate = onSlotClick
@@ -330,6 +341,14 @@ export function AvailabilityCalendarGrid({
                           return (
                             <div
                               key={String(s.id)}
+                              // A slot only a row or two tall cannot show its own
+                              // labels legibly, so describe it on hover.
+                              title={
+                                (slotTooltip
+                                  ? slotTooltip(s, slotInfo)
+                                  : `${dayLabels[colIndex]}, ${startLbl} to ${endLbl} · ${durationLabel}`) ??
+                                undefined
+                              }
                               data-availability-block
                               // Focusable whenever it can be acted on: edited,
                               // or activated via onSlotClick in readOnly mode.
