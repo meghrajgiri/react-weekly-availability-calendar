@@ -50,11 +50,32 @@ export default defineConfig({
   // directive is required for the Next.js App Router, and treeshaking keeps
   // the bundle from carrying what nobody imports.
   async onSuccess() {
-    const { readFile, writeFile } = await import("node:fs/promises");
+    const { readFile, writeFile, rm } = await import("node:fs/promises");
+
     for (const file of ["dist/index.js", "dist/index.cjs"]) {
       const source = await readFile(file, "utf8");
+      if (!source.includes("ac-grid-container")) {
+        throw new Error(
+          `${file} does not contain the inlined stylesheet. The css-as-text ` +
+            `plugin has stopped working and the component would render unstyled.`
+        );
+      }
       if (source.startsWith('"use client"')) continue;
       await writeFile(file, `"use client";\n${source}`);
+    }
+
+    // esbuild emits a standalone stylesheet as well as inlining it, even
+    // though the import is loaded as text. Nothing references it — the package
+    // injects its styles at runtime and `exports` only maps the JS — so it is
+    // 32 kB of dead weight in every install. Removed after the guard above has
+    // confirmed the styles really are inside the bundle.
+    for (const stray of [
+      "dist/index.css",
+      "dist/index.css.map",
+      "dist/index.cjs.css",
+      "dist/index.cjs.css.map",
+    ]) {
+      await rm(stray, { force: true });
     }
   },
 });

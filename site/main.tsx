@@ -77,7 +77,7 @@ function Hero({ dark }: { dark: boolean }) {
         <div className="cta-row">
           <span className="install">
             <span className="prompt">$</span>
-            {install}
+            <span className="install-cmd">{install}</span>
             <CopyButton text={install} />
           </span>
           <a className="btn btn--primary" href="#examples">
@@ -95,6 +95,9 @@ function Hero({ dark }: { dark: boolean }) {
               Drag empty space to create · drag a slot to move · drag an edge to
               resize
             </span>
+            <span className="demo-hint--short">
+              Drag to create · swipe for more days
+            </span>
           </div>
           <div className="demo-body">
             <AvailabilityCalendar
@@ -103,6 +106,10 @@ function Hero({ dark }: { dark: boolean }) {
               blockedSlots={seedBlocked}
               snapMinutes={30}
               timeFormat="12"
+              // Opens on working hours rather than midnight, so the first
+              // thing visible is the slots rather than empty night rows.
+              startHour={8}
+              endHour={20}
               theme={dark ? darkTheme : undefined}
             />
           </div>
@@ -179,10 +186,10 @@ function App() {
           <a className="nav-link nav-link--hide-sm" href="#props">
             API
           </a>
-          <a className="nav-link" href={STORYBOOK}>
+          <a className="nav-link nav-link--hide-xs" href={STORYBOOK}>
             Storybook
           </a>
-          <a className="nav-link" href={NPM}>
+          <a className="nav-link nav-link--hide-xs" href={NPM}>
             npm
           </a>
           <a className="nav-link" href={REPO}>
